@@ -1,0 +1,100 @@
+# =============================================================================
+# API Automation Platform — CI regression template
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   BACKEND_URL  — e.g. https://your-backend.onrender.com  (no trailing slash)
+#   API_KEY      — platform API key from /api-keys (starts with aap_)
+#   COLLECTION_ID — numeric collection id to run
+#   ENVIRONMENT_ID — numeric environment id to run against
+#
+# This workflow does NOT run Newman inside GitHub. It calls the platform's
+# /api/ci/* endpoints so execution history + HTML reports stay centralized.
+# =============================================================================
+
+name: API Regression
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Trigger Newman run on platform
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+          COLLECTION_ID: ${{ secrets.COLLECTION_ID }}
+          ENVIRONMENT_ID: ${{ secrets.ENVIRONMENT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BACKEND_URL:-}" ] || [ -z "${API_KEY:-}" ] || [ -z "${COLLECTION_ID:-}" ] || [ -z "${ENVIRONMENT_ID:-}" ]; then
+            echo "Missing required secrets: BACKEND_URL, API_KEY, COLLECTION_ID, ENVIRONMENT_ID"
+            exit 1
+          fi
+
+          BACKEND_URL="${BACKEND_URL%/}"
+
+          echo "Starting CI execution for collection=${COLLECTION_ID} environment=${ENVIRONMENT_ID}"
+
+          RESPONSE=$(curl -sS -X POST "${BACKEND_URL}/api/ci/executions" \
+            -H "Content-Type: application/json" \
+            -H "X-API-Key: ${API_KEY}" \
+            -d "{\"collectionId\": ${COLLECTION_ID}, \"environmentId\": ${ENVIRONMENT_ID}}")
+
+          echo "Start response: ${RESPONSE}"
+
+          EXEC_ID=$(echo "${RESPONSE}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))")
+          if [ -z "${EXEC_ID}" ]; then
+            echo "Failed to parse execution id from response"
+            exit 1
+          fi
+
+          echo "Execution id: ${EXEC_ID}"
+
+          STATUS="running"
+          ATTEMPTS=0
+          MAX_ATTEMPTS=120
+
+          while [ "${STATUS}" = "running" ] && [ "${ATTEMPTS}" -lt "${MAX_ATTEMPTS}" ]; do
+            sleep 5
+            ATTEMPTS=$((ATTEMPTS + 1))
+            POLL=$(curl -sS "${BACKEND_URL}/api/ci/executions/${EXEC_ID}/status" \
+              -H "X-API-Key: ${API_KEY}")
+            STATUS=$(echo "${POLL}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status',''))")
+            REPORT_URL=$(echo "${POLL}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('report_url') or '')")
+            echo "Poll #${ATTEMPTS}: status=${STATUS}"
+          done
+
+          if [ "${STATUS}" = "running" ]; then
+            echo "Timed out waiting for execution to finish"
+            exit 1
+          fi
+
+          if [ -n "${REPORT_URL}" ]; then
+            case "${REPORT_URL}" in
+              http*) echo "Report URL: ${REPORT_URL}" ;;
+              *) echo "Report URL: ${BACKEND_URL}${REPORT_URL}" ;;
+            esac
+          else
+            echo "Report URL: (none — open the platform Executions page for id ${EXEC_ID})"
+          fi
+
+          if [ "${STATUS}" = "failed" ]; then
+            echo "API regression failed"
+            exit 1
+          fi
+
+          if [ "${STATUS}" != "passed" ]; then
+            echo "Unexpected final status: ${STATUS}"
+            exit 1
+          fi
+
+          echo "API regression passed"

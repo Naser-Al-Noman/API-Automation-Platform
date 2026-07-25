@@ -8,6 +8,7 @@ import Collections from './pages/Collections';
 import Environments from './pages/Environments';
 import ExecutionHistory from './pages/ExecutionHistory';
 import ExecutionDetail from './pages/ExecutionDetail';
+import ApiKeys from './pages/ApiKeys';
 
 function RootRedirect() {
   const { isAuthenticated, loading } = useAuth();
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/environments/:id" element={<Protected><Environments /></Protected>} />
           <Route path="/executions" element={<Protected><ExecutionHistory /></Protected>} />
           <Route path="/executions/:id" element={<Protected><ExecutionDetail /></Protected>} />
+          <Route path="/api-keys" element={<Protected><ApiKeys /></Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

@@ -8,6 +8,7 @@ import * as environmentsApi from '../api/environments';
 import * as executionsApi from '../api/executions';
 import * as schemasApi from '../api/schemas';
 import { flattenCollectionItems, formatDate } from '../utils/postmanUi';
+import { buildCiWorkflowYaml } from '../utils/ciWorkflow';
 
 function CollectionsList() {
   const navigate = useNavigate();
@@ -324,6 +325,79 @@ function CollectionDetail() {
               )}
               {runError && (
                 <p className="mt-2 text-sm text-red-700">{runError}</p>
+              )}
+            </div>
+
+            <div className="mt-5 border-t border-slate-100 pt-4">
+              <p className="text-sm font-medium text-slate-800">CI Integration</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Copy this GitHub Actions workflow into{' '}
+                <code className="rounded bg-slate-100 px-1 text-xs">.github/workflows/</code>.
+                Add secrets{' '}
+                <code className="rounded bg-slate-100 px-1 text-xs">BACKEND_URL</code> and{' '}
+                <code className="rounded bg-slate-100 px-1 text-xs">API_KEY</code>
+                {' '}(create a key under{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/api-keys')}
+                  className="font-medium text-slate-900 underline"
+                >
+                  API Keys
+                </button>
+                ). Collection id <strong>{collection.id}</strong> is already filled in.
+              </p>
+
+              {environments.length === 0 ? (
+                <p className="mt-2 text-sm text-slate-500">
+                  Upload an environment first to fill environmentId in the snippet.
+                </p>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  <label className="block max-w-sm">
+                    <span className="mb-1 block text-xs font-medium text-slate-600">
+                      Environment for CI snippet
+                    </span>
+                    <select
+                      value={selectedEnvId}
+                      onChange={(e) => setSelectedEnvId(e.target.value)}
+                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500"
+                    >
+                      {environments.map((env) => (
+                        <option key={env.id} value={env.id}>
+                          {env.name} (id {env.id})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="relative">
+                    <pre className="max-h-80 overflow-auto rounded-md border border-slate-200 bg-slate-900 p-4 text-xs text-slate-100">
+                      {buildCiWorkflowYaml({
+                        collectionId: collection.id,
+                        environmentId: selectedEnvId ? Number(selectedEnvId) : undefined,
+                      })}
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const yaml = buildCiWorkflowYaml({
+                          collectionId: collection.id,
+                          environmentId: selectedEnvId
+                            ? Number(selectedEnvId)
+                            : undefined,
+                        });
+                        try {
+                          await navigator.clipboard.writeText(yaml);
+                          alert('Workflow YAML copied to clipboard');
+                        } catch {
+                          alert('Could not copy — select the YAML manually');
+                        }
+                      }}
+                      className="absolute right-3 top-3 rounded-md bg-white/10 px-2.5 py-1 text-xs font-medium text-white hover:bg-white/20"
+                    >
+                      Copy YAML
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>

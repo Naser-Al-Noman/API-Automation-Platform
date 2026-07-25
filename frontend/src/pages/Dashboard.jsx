@@ -9,23 +9,23 @@ export default function Dashboard() {
     <AppShell title="Dashboard">
       <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-          Phase 5 · JSON Schema Validation
+          Phase 6 · GitHub Actions CI
         </p>
         <h2 className="mt-2 text-2xl font-bold text-slate-900">
           Welcome, {user?.email}
         </h2>
         <p className="mt-2 text-slate-600">
-          Define JSON Schemas per endpoint, run Newman, and see schema pass/fail next to test results.
+          Generate API keys and wire GitHub Actions to trigger Newman runs through this platform.
         </p>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             to="/collections"
             className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4 hover:border-slate-300 hover:bg-white"
           >
             <h3 className="font-semibold text-slate-900">Collections</h3>
             <p className="mt-1 text-sm text-slate-600">
-              Upload Postman collections and start runs.
+              Upload collections and copy CI workflow YAML.
             </p>
           </Link>
           <Link
@@ -34,7 +34,7 @@ export default function Dashboard() {
           >
             <h3 className="font-semibold text-slate-900">Environments</h3>
             <p className="mt-1 text-sm text-slate-600">
-              Manage variables used during Newman runs.
+              Variables used during Newman and CI runs.
             </p>
           </Link>
           <Link
@@ -43,7 +43,16 @@ export default function Dashboard() {
           >
             <h3 className="font-semibold text-slate-900">Executions</h3>
             <p className="mt-1 text-sm text-slate-600">
-              View run history, status, and HTML reports.
+              History from UI runs and GitHub Actions.
+            </p>
+          </Link>
+          <Link
+            to="/api-keys"
+            className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4 hover:border-slate-300 hover:bg-white"
+          >
+            <h3 className="font-semibold text-slate-900">API Keys</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              Create keys for CI authentication.
             </p>
           </Link>
         </div>

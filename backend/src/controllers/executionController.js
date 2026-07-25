@@ -244,7 +244,11 @@ async function getExecutionStatus(req, res) {
       return res.status(error.status).json({ message: error.message });
     }
 
-    return res.json({ status: execution.status });
+    return res.json({
+      id: execution.id,
+      status: execution.status,
+      report_url: execution.report_url || null,
+    });
   } catch (err) {
     console.error('getExecutionStatus error:', err);
     return res.status(500).json({ message: 'Failed to fetch execution status' });

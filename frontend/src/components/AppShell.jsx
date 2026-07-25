@@ -38,6 +38,9 @@ export default function AppShell({ children, title, actions }) {
               <NavLink to="/executions" className={linkClass}>
                 Executions
               </NavLink>
+              <NavLink to="/api-keys" className={linkClass}>
+                API Keys
+              </NavLink>
             </nav>
           </div>
           <div className="flex items-center gap-3">
