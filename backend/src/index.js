@@ -16,7 +16,14 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
-app.use(cors());
+// FRONTEND_URL may be a single origin or comma-separated list (prod + preview).
+// When unset (typical local dev), allow any origin so Vite can call the API.
+const corsOptions =
+  config.frontendOrigins.length > 0
+    ? { origin: config.frontendOrigins }
+    : { origin: true };
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 
 app.use('/health', healthRoutes);
@@ -34,10 +41,10 @@ app.get('/', (_req, res) => {
   res.json({
     name: 'API Automation Platform',
     version: '0.1.0',
-    phase: 9,
+    phase: 10,
   });
 });
 
 app.listen(config.port, () => {
-  console.log(`Backend listening on http://localhost:${config.port}`);
+  console.log(`Backend listening on port ${config.port}`);
 });

@@ -6,6 +6,10 @@ const Ajv = require('ajv');
 // Register htmlextra so newman can resolve the reporter by name
 require('newman-reporter-htmlextra');
 
+// HTML reports are written under backend/reports/.
+// On Render (and similar PaaS), the disk is ephemeral: files are lost on
+// restart/redeploy. Do not rely on reports surviving redeploys until
+// object storage (e.g. S3) is added. See backend/REPORTS.md.
 const REPORTS_DIR = path.join(__dirname, '..', '..', 'reports');
 
 function ensureReportsDir() {

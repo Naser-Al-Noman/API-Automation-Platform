@@ -1,0 +1,30 @@
+# Render Blueprint — API Automation Platform (backend)
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Option A: From the Render dashboard, create a Web Service with Root Directory
+#           set to `backend` and use the Build/Start commands below.
+# Option B: Use Blueprint and point Render at this file (repo may need
+#           rootDir adjustments if the Blueprint is applied from the monorepo root).
+
+services:
+  - type: web
+    name: api-automation-platform-api
+    runtime: node
+    plan: free
+    # If this Blueprint is used from the monorepo root, uncomment:
+    # rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      # Render sets PORT automatically; listed here as a documented placeholder.
+      - key: PORT
+        sync: false
