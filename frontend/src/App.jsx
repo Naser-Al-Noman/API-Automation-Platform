@@ -11,6 +11,7 @@ import Environments from './pages/Environments';
 import ExecutionHistory from './pages/ExecutionHistory';
 import ExecutionDetail from './pages/ExecutionDetail';
 import ApiKeys from './pages/ApiKeys';
+import Analytics from './pages/Analytics';
 
 function RootRedirect() {
   const { isAuthenticated, loading } = useAuth();
@@ -45,6 +46,7 @@ export default function App() {
 
           <Route element={<ProtectedLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/collections" element={<Collections />} />
             <Route path="/collections/:id" element={<Collections />} />
             <Route path="/environments" element={<Environments />} />

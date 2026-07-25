@@ -5,6 +5,7 @@ import Button from './ui/Button';
 
 const NAV = [
   { to: '/dashboard', label: 'Dashboard', end: true },
+  { to: '/analytics', label: 'Analytics' },
   { to: '/collections', label: 'Collections' },
   { to: '/environments', label: 'Environments' },
   { to: '/executions', label: 'Executions' },

@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
 import { ExecutionRowCompact } from '../components/ExecutionRow';
+import { PassRateTrendChart } from '../components/AnalyticsCharts';
 import { Button, Card, EmptyState, LoadingSpinner } from '../components/ui';
 import * as dashboardApi from '../api/dashboard';
+import * as analyticsApi from '../api/analytics';
 import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
+  const [passTrend, setPassTrend] = useState([]);
+  const [trendLoading, setTrendLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -37,6 +41,27 @@ export default function Dashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTrend() {
+      setTrendLoading(true);
+      try {
+        const data = await analyticsApi.getPassRateTrend({ days: 30 });
+        if (!cancelled) setPassTrend(data);
+      } catch {
+        if (!cancelled) setPassTrend([]);
+      } finally {
+        if (!cancelled) setTrendLoading(false);
+      }
+    }
+
+    loadTrend();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (loading) {
     return (
       <>
@@ -57,9 +82,7 @@ export default function Dashboard() {
 
   const hasCollections = (summary?.totalCollections || 0) > 0;
   const passRateLabel =
-    summary?.recentPassRate == null
-      ? '—'
-      : `${summary.recentPassRate}%`;
+    summary?.recentPassRate == null ? '—' : `${summary.recentPassRate}%`;
 
   return (
     <>
@@ -115,6 +138,32 @@ export default function Dashboard() {
               <p className="mt-2 text-3xl font-bold text-slate-900">{passRateLabel}</p>
             </Card>
           </div>
+
+          <Card>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-slate-800">Pass rate (30 days)</p>
+                <p className="text-xs text-slate-500">Sparkline from daily execution results</p>
+              </div>
+              <Link
+                to="/analytics"
+                className="text-sm font-medium text-slate-700 underline-offset-2 hover:underline"
+              >
+                Open Analytics
+              </Link>
+            </div>
+            {trendLoading ? (
+              <LoadingSpinner label="Loading trend…" />
+            ) : passTrend.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-500">
+                No execution data yet for this range — run some collections first
+              </p>
+            ) : (
+              <div className="h-[72px] w-full">
+                <PassRateTrendChart data={passTrend} sparkline height={72} />
+              </div>
+            )}
+          </Card>
 
           <Card>
             <p className="text-sm font-medium text-slate-800">Quick actions</p>

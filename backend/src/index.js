@@ -12,6 +12,7 @@ const schemaRoutes = require('./routes/schemaRoutes');
 const apiKeyRoutes = require('./routes/apiKeyRoutes');
 const ciRoutes = require('./routes/ciRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
@@ -27,12 +28,13 @@ app.use('/api/schemas', schemaRoutes);
 app.use('/api/api-keys', apiKeyRoutes);
 app.use('/api/ci', ciRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/', (_req, res) => {
   res.json({
     name: 'API Automation Platform',
     version: '0.1.0',
-    phase: 8,
+    phase: 9,
   });
 });
 
