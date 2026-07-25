@@ -4,6 +4,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Collections from './pages/Collections';
+import Environments from './pages/Environments';
 
 function RootRedirect() {
   const { isAuthenticated, loading } = useAuth();
@@ -19,6 +21,10 @@ function RootRedirect() {
   return <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />;
 }
 
+function Protected({ children }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -27,14 +33,11 @@ export default function App() {
           <Route path="/" element={<RootRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+          <Route path="/collections" element={<Protected><Collections /></Protected>} />
+          <Route path="/collections/:id" element={<Protected><Collections /></Protected>} />
+          <Route path="/environments" element={<Protected><Environments /></Protected>} />
+          <Route path="/environments/:id" element={<Protected><Environments /></Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
