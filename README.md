@@ -1,6 +1,8 @@
 ﻿# API Automation Platform
 
-Full-stack platform for automating REST API testing with **Postman collections** and **Newman**. Upload collections and environments, run tests (including CI via API keys), validate responses with JSON Schema, browse execution history and HTML reports, and monitor pass-rate / performance trends.
+Full-stack platform for automating REST API testing with **Postman collections** and **Newman**.
+
+Upload collections and environments, run tests from the UI or CI (API keys), validate responses with JSON Schema, review execution history and HTML reports, and monitor pass-rate and performance trends on interactive dashboards.
 
 ## Tech stack
 
@@ -11,10 +13,20 @@ Full-stack platform for automating REST API testing with **Postman collections**
 | Database | PostgreSQL on Neon (serverless) |
 | Test runner | Postman collections + Newman + newman-reporter-htmlextra |
 | Validation | JSON Schema (Ajv) |
-| CI | GitHub Actions (workflow template) + API-key CI endpoints |
+| CI | GitHub Actions workflow template + API-key execution endpoints |
 | Deploy | Frontend → **Vercel**, Backend → **Render**, DB → **Neon** |
 
-## Production architecture
+## Live demo
+
+| | URL |
+|--|-----|
+| **Frontend** | [https://api-automation-platform-weld.vercel.app/](https://api-automation-platform-weld.vercel.app/) |
+| **Backend** | [https://api-automation-platform.onrender.com/](https://api-automation-platform.onrender.com/) |
+| **Health check** | [https://api-automation-platform.onrender.com/health](https://api-automation-platform.onrender.com/health) |
+
+> Free-tier Render services may cold-start; the first request after idle can take ~30–60s.
+
+## Architecture
 
 ```
   Browser
@@ -32,85 +44,86 @@ Full-stack platform for automating REST API testing with **Postman collections**
                                       └──────────────────┘
 ```
 
-- **Vercel** hosts the static Vite build; `VITE_API_URL` points at the Render API.
-- **Render** runs `npm start`, serves `/api/*` and `/health`, executes Newman in-process.
+- **Vercel** hosts the Vite SPA (`VITE_API_URL` → Render).
+- **Render** serves `/api/*` and `/health`, runs Newman in-process.
 - **Neon** stores users, collections, environments, executions, schemas, and API keys.
-
-### Live demo (fill in after deploy)
-
-| | URL |
-|--|-----|
-| Frontend | _https://your-app.vercel.app_ |
-| Backend | _https://your-api.onrender.com_ |
-| Health | _https://your-api.onrender.com/health_ |
 
 ## Project structure
 
 ```
 /
 ├── backend/                 # Express API (Render)
-│   ├── render.yaml          # Render Blueprint placeholders
-│   ├── REPORTS.md           # Ephemeral report storage note
+│   ├── scripts/             # seed-demo, seed-executions
+│   ├── render.yaml
+│   ├── REPORTS.md
 │   └── src/
 ├── frontend/                # React Vite app (Vercel)
-│   └── vercel.json          # SPA rewrite for client routes
-├── .github/workflows/       # CI workflow template (Phase 6)
+│   └── vercel.json          # SPA route rewrites
+├── .github/workflows/       # CI workflow template
+├── LICENSE                  # MIT
 └── README.md
 ```
 
-## Data model
+## Screenshots
 
-- **users** — id, email, password_hash, created_at
-- **collections** — id, user_id, name, postman_json, created_at
-- **environments** — id, user_id, name, variables_json
-- **executions** — id, collection_id, environment_id, status, started_at, finished_at, report_url, summary_json
-- **schemas** — id, collection_id, endpoint, schema_json
-- **api_keys** — hashed keys for CI (`X-API-Key`)
+_Placeholders — add real screenshots after final UI polish._
 
-## Phase plan
+| Screen | Preview |
+|--------|---------|
+| Dashboard | _Coming soon_ |
+| Collections | _Coming soon_ |
+| Execution detail / report | _Coming soon_ |
+| Analytics | _Coming soon_ |
 
-| Phase | Scope | Status |
-|-------|--------|--------|
-| **1. Scaffold** | Monorepo, Express + Vite, Neon, health, migrations | Complete |
-| **2. Auth** | JWT register/login, protected routes | Complete |
-| **3. Collections & environments** | Upload/parse/store Postman JSON, CRUD | Complete |
-| **4. Newman execution engine** | Async runs, summaries, HTML reports | Complete |
-| **5. JSON Schema validation** | Ajv validation during Newman runs | Complete |
-| **6. GitHub Actions / CI API** | API keys, CI execution endpoints, workflow template | Complete |
-| **7. Unified layout & dashboard** | Sidebar shell, summary home | Complete |
-| **8. Execution history & reports** | Filters, pagination, download, report polish | Complete |
-| **9. Analytics** | Pass/fail & response-time charts (Recharts) | Complete |
-| **10. Deployment prep** | Render + Vercel config, CORS, docs | Complete |
-| **11. Polish** | README polish, demo data, error handling | Pending |
+<!-- Example once you have images under docs/screenshots/:
+| Dashboard | ![Dashboard](docs/screenshots/dashboard.png) |
+-->
 
-## Local development
+## Build log (phases)
+
+| Phase | Features delivered | Status |
+|-------|-------------------|--------|
+| **1. Scaffold** | Monorepo, Express + Vite, Neon pool, health checks, migrations | Done |
+| **2. Auth** | JWT register/login/me, protected routes, AuthContext | Done |
+| **3. Collections & environments** | Upload/parse Postman JSON, CRUD, ownership checks | Done |
+| **4. Newman engine** | Async runs, summaries, HTML reports (htmlextra) | Done |
+| **5. JSON Schema** | Schema CRUD, Ajv validation during Newman | Done |
+| **6. CI / API keys** | Hashed API keys, CI execution endpoints, Actions template | Done |
+| **7. Layout & dashboard** | Sidebar shell, summary stats, shared UI kit | Done |
+| **8. History & reports** | Filters, search, pagination, download, re-run | Done |
+| **9. Analytics** | Pass-rate / response-time / endpoint / schema charts | Done |
+| **10. Deployment** | CORS, Render/Vercel config, production env docs | Done |
+| **11. Polish** | README, live links, demo seed script | Done |
+
+## Local setup
 
 ### Prerequisites
 
 - Node.js 18+ (20 recommended)
-- A free Neon Postgres database ([neon.tech](https://neon.tech))
+- A Neon Postgres database ([neon.tech](https://neon.tech))
 
 ### 1. Database
 
-1. Create a Neon project and copy the connection URI (prefer the **pooled** host, `…-pooler…`, with `?sslmode=require`).
-2. Put it in `backend/.env` as `DATABASE_URL`.
+1. Create a Neon project.
+2. Copy the **pooled** connection string (host contains `-pooler`, includes `sslmode=require`).
+3. Save it as `DATABASE_URL` in `backend/.env`.
 
 ### 2. Backend
 
 ```bash
 cd backend
 cp .env.example .env
-# Set DATABASE_URL, JWT_SECRET, optional FRONTEND_URL=http://localhost:5173
+# Edit .env: DATABASE_URL, JWT_SECRET
+# Optional local CORS: FRONTEND_URL=http://localhost:5173
 npm install
 npm run migrate
+npm run seed          # demo user + Postman Echo collection/env (see below)
 npm run dev
 ```
 
 - Dev: `npm run dev` (nodemon)
-- Prod-like: `npm start` (plain `node`)
-- Migrate anytime: `npm run migrate`
-
-API: `http://localhost:5000` — check `GET /health` and `GET /health/db`.
+- Production-style: `npm start`
+- API: [http://localhost:5000](http://localhost:5000) — try `/health` and `/health/db`
 
 ### 3. Frontend
 
@@ -122,7 +135,7 @@ npm install
 npm run dev
 ```
 
-App: `http://localhost:5173`.
+App: [http://localhost:5173](http://localhost:5173)
 
 ### Environment variables
 
@@ -131,9 +144,9 @@ App: `http://localhost:5173`.
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | Neon Postgres URI (pooled + `sslmode=require`) |
-| `JWT_SECRET` | Yes | Long random string for signing JWTs |
+| `JWT_SECRET` | Yes | Long random string for JWTs |
 | `PORT` | No | Defaults to `5000`; Render sets this automatically |
-| `FRONTEND_URL` | Prod | Comma-separated allowed CORS origins (e.g. Vercel URLs) |
+| `FRONTEND_URL` | Prod | Comma-separated CORS origins (Vercel URL(s)) |
 
 **Frontend (`frontend/.env`)**
 
@@ -141,30 +154,59 @@ App: `http://localhost:5173`.
 |----------|----------|-------------|
 | `VITE_API_URL` | Yes | Backend base URL, no trailing slash |
 
-## Deployment (summary)
+### Demo seed (`npm run seed`)
 
-Full click-by-click steps are in the Phase 10 handoff (Neon → Render → Vercel → wire CORS). Order matters:
+From `backend/` (requires `DATABASE_URL`; migrate first):
 
-1. Confirm Neon `DATABASE_URL` (pooled).
-2. Deploy **backend** on Render → get `https://….onrender.com`.
-3. Run `npm run migrate` against Neon (local or Render shell).
-4. Deploy **frontend** on Vercel with `VITE_API_URL` = Render URL.
-5. Set Render `FRONTEND_URL` to the Vercel origin(s), then redeploy backend if needed.
+```bash
+npm run seed
+```
 
-Blueprint / config files:
+Creates (idempotent if already present):
 
-- `backend/render.yaml` — Render service placeholders
-- `frontend/vercel.json` — SPA rewrites (`/dashboard` etc. → `index.html`)
+| Item | Default |
+|------|---------|
+| User | `demo@example.com` / `demopass123` |
+| Collection | **Postman Echo Demo** (GET/POST against postman-echo.com) |
+| Environment | **Postman Echo Env** (`baseUrl=https://postman-echo.com`) |
 
-## Known limitations
+Optional overrides:
 
-- **Ephemeral HTML reports on Render** — Newman writes files under `backend/reports/`. Render’s disk can wipe on restart/redeploy, so report preview/download may 404 afterward even though execution rows and analytics summaries remain in Neon. See `backend/REPORTS.md`. No S3/object storage yet.
-- **In-process Newman (Phase 4)** — Runs execute inside the web process (no job queue). Long collections block that instance; if the server dies mid-run, an execution can stay stuck in `running`.
-- **Timeouts** — Collection runs and per-request timeouts are capped in the Newman service (order of ~10 minutes / ~30s request); very large suites may fail or need splitting.
-- **Free-tier cold starts** — Render free web services sleep; the first request after idle can be slow.
-- **CI from GitHub Actions** — Needs a publicly reachable `BACKEND_URL` and secrets; the repo ships a workflow **example** until you rename/enable it for a deployed API.
-- **No rate limiting** yet on auth or API keys.
+```bash
+SEED_EMAIL=you@example.com SEED_PASSWORD=yourpassword npm run seed
+```
+
+With the API running, also enqueue Newman runs:
+
+```bash
+npm run seed -- --executions 5
+```
+
+Bulk history for pagination/analytics testing:
+
+```bash
+npm run seed:executions -- --email demo@example.com --password demopass123 --collectionId <id> --environmentId <id> --count 25
+```
+
+## Data model
+
+- **users** — email, password_hash
+- **collections** — Postman collection JSON
+- **environments** — Postman environment / variables JSON
+- **executions** — status, timings, report_url, summary_json
+- **schemas** — per-endpoint JSON Schema
+- **api_keys** — hashed keys for CI (`X-API-Key`)
+
+## Future improvements
+
+These are intentional follow-ups, not blockers for the current MVP:
+
+- **Persistent report storage** — HTML reports live under `backend/reports/` on the Render disk, which is ephemeral across restarts/redeploys. Moving reports to object storage (S3/R2) would keep downloads available indefinitely. See `backend/REPORTS.md`.
+- **Execution queue / workers** — Newman currently runs in-process on the web service. A job queue and worker process would isolate long runs and avoid stuck `running` rows if the instance restarts mid-execution.
+- **Tunable timeouts at scale** — Collection and per-request timeouts protect the host; very large suites may need higher limits, suite splitting, or parallel workers.
+- **Rate limiting on CI / auth** — API-key and login endpoints would benefit from rate limits and abuse controls before heavy public CI usage.
+- **GitHub Actions on every push** — The shipped workflow is an example template; enabling it for production needs secrets and a stable public `BACKEND_URL`.
 
 ## License
 
-Private / TBD
+This project is licensed under the [MIT License](LICENSE).
