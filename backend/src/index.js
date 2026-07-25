@@ -32,7 +32,7 @@ app.get('/', (_req, res) => {
   res.json({
     name: 'API Automation Platform',
     version: '0.1.0',
-    phase: 7,
+    phase: 8,
   });
 });
 

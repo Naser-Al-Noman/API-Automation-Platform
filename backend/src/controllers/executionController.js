@@ -170,8 +170,8 @@ async function startExecution(req, res) {
 
 async function listExecutions(req, res) {
   try {
+    const conditions = ['c.user_id = $1'];
     const params = [req.user.id];
-    let filter = '';
 
     if (req.query.collectionId) {
       const collectionId = Number(req.query.collectionId);
@@ -179,9 +179,80 @@ async function listExecutions(req, res) {
         return res.status(400).json({ message: 'Invalid collectionId filter' });
       }
       params.push(collectionId);
-      filter = ` AND e.collection_id = $${params.length}`;
+      conditions.push(`e.collection_id = $${params.length}`);
     }
 
+    if (req.query.environmentId) {
+      const environmentId = Number(req.query.environmentId);
+      if (!Number.isInteger(environmentId) || environmentId < 1) {
+        return res.status(400).json({ message: 'Invalid environmentId filter' });
+      }
+      params.push(environmentId);
+      conditions.push(`e.environment_id = $${params.length}`);
+    }
+
+    if (req.query.status) {
+      const status = String(req.query.status).toLowerCase();
+      if (!['passed', 'failed', 'running'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status filter' });
+      }
+      params.push(status);
+      conditions.push(`e.status = $${params.length}`);
+    }
+
+    if (req.query.startDate) {
+      const start = new Date(req.query.startDate);
+      if (Number.isNaN(start.getTime())) {
+        return res.status(400).json({ message: 'Invalid startDate' });
+      }
+      params.push(start.toISOString());
+      conditions.push(`e.started_at >= $${params.length}::timestamptz`);
+    }
+
+    if (req.query.endDate) {
+      const endRaw = String(req.query.endDate);
+      let end;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(endRaw)) {
+        end = new Date(`${endRaw}T23:59:59.999Z`);
+      } else {
+        end = new Date(endRaw);
+      }
+      if (Number.isNaN(end.getTime())) {
+        return res.status(400).json({ message: 'Invalid endDate' });
+      }
+      params.push(end.toISOString());
+      conditions.push(`e.started_at <= $${params.length}::timestamptz`);
+    }
+
+    if (req.query.search) {
+      const search = String(req.query.search).trim();
+      if (search) {
+        params.push(`%${search}%`);
+        conditions.push(`c.name ILIKE $${params.length}`);
+      }
+    }
+
+    let page = Number(req.query.page);
+    let limit = Number(req.query.limit);
+    if (!Number.isInteger(page) || page < 1) page = 1;
+    if (!Number.isInteger(limit) || limit < 1) limit = 20;
+    if (limit > 100) limit = 100;
+
+    const where = conditions.join(' AND ');
+
+    const countResult = await query(
+      `SELECT COUNT(*)::int AS total
+       FROM executions e
+       JOIN collections c ON c.id = e.collection_id
+       LEFT JOIN environments env ON env.id = e.environment_id
+       WHERE ${where}`,
+      params
+    );
+    const total = countResult.rows[0].total;
+    const totalPages = Math.max(1, Math.ceil(total / limit) || 1);
+    const offset = (page - 1) * limit;
+
+    const listParams = [...params, limit, offset];
     const result = await query(
       `SELECT e.id, e.collection_id, e.environment_id, e.status,
               e.started_at, e.finished_at, e.report_url, e.summary_json,
@@ -190,12 +261,18 @@ async function listExecutions(req, res) {
        FROM executions e
        JOIN collections c ON c.id = e.collection_id
        LEFT JOIN environments env ON env.id = e.environment_id
-       WHERE c.user_id = $1${filter}
-       ORDER BY e.started_at DESC NULLS LAST, e.id DESC`,
-      params
+       WHERE ${where}
+       ORDER BY e.started_at DESC NULLS LAST, e.id DESC
+       LIMIT $${listParams.length - 1} OFFSET $${listParams.length}`,
+      listParams
     );
 
-    return res.json(result.rows);
+    return res.json({
+      executions: result.rows,
+      total,
+      page,
+      totalPages,
+    });
   } catch (err) {
     console.error('listExecutions error:', err);
     return res.status(500).json({ message: 'Failed to list executions' });
@@ -255,30 +332,65 @@ async function getExecutionStatus(req, res) {
   }
 }
 
+async function resolveOwnedReportPath(executionId, userId) {
+  const id = Number(executionId);
+  if (!Number.isInteger(id) || id < 1) {
+    return { error: { status: 400, message: 'Invalid execution id' } };
+  }
+
+  const { execution, error } = await findOwnedExecution(id, userId);
+  if (error) {
+    return { error };
+  }
+
+  ensureReportsDir();
+  const reportPath = path.join(REPORTS_DIR, `${id}.html`);
+
+  if (!fs.existsSync(reportPath)) {
+    return { error: { status: 404, message: 'Report file not found for this execution' } };
+  }
+
+  return { id, reportPath };
+}
+
 async function getExecutionReport(req, res) {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) {
-      return res.status(400).json({ message: 'Invalid execution id' });
-    }
-
-    const { execution, error } = await findOwnedExecution(id, req.user.id);
+    const { id, reportPath, error } = await resolveOwnedReportPath(
+      req.params.id,
+      req.user.id
+    );
     if (error) {
       return res.status(error.status).json({ message: error.message });
     }
 
-    ensureReportsDir();
-    const reportPath = path.join(REPORTS_DIR, `${id}.html`);
-
-    if (!fs.existsSync(reportPath)) {
-      return res.status(404).json({ message: 'Report file not found for this execution' });
-    }
-
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', 'inline');
     return res.sendFile(reportPath);
   } catch (err) {
     console.error('getExecutionReport error:', err);
     return res.status(500).json({ message: 'Failed to fetch execution report' });
+  }
+}
+
+async function downloadExecutionReport(req, res) {
+  try {
+    const { id, reportPath, error } = await resolveOwnedReportPath(
+      req.params.id,
+      req.user.id
+    );
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="execution-${id}-report.html"`
+    );
+    return res.sendFile(reportPath);
+  } catch (err) {
+    console.error('downloadExecutionReport error:', err);
+    return res.status(500).json({ message: 'Failed to download execution report' });
   }
 }
 
@@ -288,4 +400,5 @@ module.exports = {
   getExecution,
   getExecutionStatus,
   getExecutionReport,
+  downloadExecutionReport,
 };

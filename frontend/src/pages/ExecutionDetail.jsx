@@ -1,25 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
+import { durationLabel } from '../components/ExecutionRow';
 import { Badge, Button, Card, LoadingSpinner } from '../components/ui';
 import * as executionsApi from '../api/executions';
 import { formatDate } from '../utils/postmanUi';
 
-function durationLabel(startedAt, finishedAt) {
-  if (!startedAt || !finishedAt) return '—';
-  const ms = new Date(finishedAt) - new Date(startedAt);
-  if (Number.isNaN(ms) || ms < 0) return '—';
-  if (ms < 1000) return `${ms} ms`;
-  return `${(ms / 1000).toFixed(1)} s`;
-}
-
 export default function ExecutionDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [execution, setExecution] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reportUrl, setReportUrl] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState('');
+  const [iframeFailed, setIframeFailed] = useState(false);
+  const [rerunning, setRerunning] = useState(false);
+  const [rerunError, setRerunError] = useState('');
+  const [downloadError, setDownloadError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +36,12 @@ export default function ExecutionDetail() {
     async function start() {
       setLoading(true);
       setError('');
+      setReportUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      setIframeFailed(false);
+      setReportError('');
       try {
         const data = await loadFull();
         if (data.status === 'running') {
@@ -77,7 +82,42 @@ export default function ExecutionDetail() {
     };
   }, [reportUrl]);
 
-  async function openReport() {
+  // Auto-load HTML report into iframe when finished
+  useEffect(() => {
+    if (!execution || execution.status === 'running' || !execution.report_url) return undefined;
+
+    let cancelled = false;
+
+    async function loadReport() {
+      setReportLoading(true);
+      setReportError('');
+      setIframeFailed(false);
+      try {
+        const blob = await executionsApi.fetchExecutionReportBlob(id);
+        if (cancelled) return;
+        const url = URL.createObjectURL(blob);
+        setReportUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      } catch (err) {
+        if (!cancelled) {
+          setReportError(
+            err.response?.data?.message || err.message || 'Failed to load report'
+          );
+        }
+      } finally {
+        if (!cancelled) setReportLoading(false);
+      }
+    }
+
+    loadReport();
+    return () => {
+      cancelled = true;
+    };
+  }, [execution, id]);
+
+  async function openReportInTab() {
     setReportError('');
     try {
       if (reportUrl) {
@@ -93,22 +133,84 @@ export default function ExecutionDetail() {
     }
   }
 
+  async function handleDownload() {
+    setDownloadError('');
+    try {
+      const blob = await executionsApi.downloadExecutionReport(id);
+      const file = new Blob([blob], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `execution-${id}-report.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      let message = err.message || 'Failed to download report';
+      if (err.response?.data instanceof Blob) {
+        try {
+          const parsed = JSON.parse(await err.response.data.text());
+          message = parsed.message || message;
+        } catch {
+          // keep message
+        }
+      } else if (err.response?.data?.message) {
+        message = err.response.data.message;
+      }
+      setDownloadError(message);
+    }
+  }
+
+  async function handleRerun() {
+    if (!execution?.collection_id || !execution?.environment_id) {
+      setRerunError('This execution is missing collection or environment details.');
+      return;
+    }
+    setRerunning(true);
+    setRerunError('');
+    try {
+      const created = await executionsApi.startExecution({
+        collectionId: execution.collection_id,
+        environmentId: execution.environment_id,
+      });
+      navigate(`/executions/${created.id}`);
+    } catch (err) {
+      setRerunError(err.response?.data?.message || err.message || 'Failed to re-run');
+      setRerunning(false);
+    }
+  }
+
   const summary = execution?.summary_json;
   const requests = Array.isArray(summary?.requests) ? summary.requests : [];
+  const canRerun =
+    execution?.collection_id &&
+    execution?.environment_id &&
+    execution.status !== 'running';
 
   return (
     <>
       <PageHeader
         title={execution ? `Execution #${execution.id}` : 'Execution'}
         actions={
-          <Link to="/executions">
-            <Button variant="secondary">Back to history</Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {canRerun && (
+              <Button onClick={handleRerun} disabled={rerunning}>
+                {rerunning ? 'Starting…' : 'Re-run this collection'}
+              </Button>
+            )}
+            <Link to="/executions">
+              <Button variant="secondary">Back to history</Button>
+            </Link>
+          </div>
         }
       />
       {loading && <LoadingSpinner label="Loading execution…" />}
       {error && (
         <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+      )}
+      {rerunError && (
+        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{rerunError}</div>
       )}
 
       {!loading && !error && execution && (
@@ -139,7 +241,7 @@ export default function ExecutionDetail() {
               <div>
                 <dt className="text-slate-500">Duration</dt>
                 <dd className="font-medium text-slate-900">
-                  {durationLabel(execution.started_at, execution.finished_at)}
+                  {durationLabel(execution.started_at, execution.finished_at, execution.status)}
                 </dd>
               </div>
             </dl>
@@ -160,13 +262,10 @@ export default function ExecutionDetail() {
                         : '—',
                   },
                 ].map((card) => (
-                  <div
-                    key={card.label}
-                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-                  >
+                  <Card key={card.label} className="!p-4">
                     <p className="text-xs uppercase tracking-wide text-slate-500">{card.label}</p>
                     <p className="mt-1 text-xl font-semibold text-slate-900">{card.value}</p>
-                  </div>
+                  </Card>
                 ))}
               </div>
 
@@ -177,13 +276,18 @@ export default function ExecutionDetail() {
               )}
 
               <div className="flex flex-wrap items-center gap-3">
-                <Button onClick={openReport}>View Full HTML Report</Button>
-                {reportError && (
-                  <span className="text-sm text-red-700">{reportError}</span>
+                <Button onClick={openReportInTab}>Open report in new tab</Button>
+                {execution.report_url && (
+                  <Button variant="secondary" onClick={handleDownload}>
+                    Download Report
+                  </Button>
+                )}
+                {(reportError || downloadError) && (
+                  <span className="text-sm text-red-700">{reportError || downloadError}</span>
                 )}
               </div>
 
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <Card padding={false}>
                 <div className="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700">
                   Request breakdown
                 </div>
@@ -267,19 +371,56 @@ export default function ExecutionDetail() {
                     })}
                   </ul>
                 )}
-              </div>
+              </Card>
 
-              {reportUrl && (
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <div className="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700">
-                    HTML report preview
+              {execution.report_url && (
+                <Card padding={false} className="overflow-hidden">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
+                    <p className="text-sm font-medium text-slate-700">HTML report preview</p>
+                    <Button variant="secondary" size="sm" onClick={openReportInTab}>
+                      Open in new tab
+                    </Button>
                   </div>
-                  <iframe
-                    title="Newman HTML report"
-                    src={reportUrl}
-                    className="h-[70vh] w-full bg-white"
-                  />
-                </div>
+
+                  {reportLoading && (
+                    <div className="px-4 py-12">
+                      <LoadingSpinner label="Loading report…" />
+                    </div>
+                  )}
+
+                  {!reportLoading && reportError && (
+                    <div className="px-4 py-8 text-center text-sm text-slate-600">
+                      <p>{reportError}</p>
+                      <Button className="mt-3" variant="secondary" onClick={handleDownload}>
+                        Download Report
+                      </Button>
+                    </div>
+                  )}
+
+                  {!reportLoading && !reportError && reportUrl && !iframeFailed && (
+                    <iframe
+                      title="Newman HTML report"
+                      src={reportUrl}
+                      className="min-h-[70vh] h-[min(85vh,900px)] w-full resize-y bg-white"
+                      onError={() => setIframeFailed(true)}
+                    />
+                  )}
+
+                  {!reportLoading && !reportError && iframeFailed && (
+                    <div className="px-4 py-8 text-center text-sm text-slate-600">
+                      <p>
+                        The report could not be shown inline (some browsers restrict iframe
+                        content). Open it in a new tab or download the HTML file instead.
+                      </p>
+                      <div className="mt-3 flex flex-wrap justify-center gap-2">
+                        <Button variant="secondary" onClick={openReportInTab}>
+                          Open in new tab
+                        </Button>
+                        <Button onClick={handleDownload}>Download Report</Button>
+                      </div>
+                    </div>
+                  )}
+                </Card>
               )}
             </>
           )}

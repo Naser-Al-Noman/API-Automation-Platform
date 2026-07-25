@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/Layout';
-import { Badge, Button, Card, EmptyState, LoadingSpinner } from '../components/ui';
+import { ExecutionRowCompact } from '../components/ExecutionRow';
+import { Button, Card, EmptyState, LoadingSpinner } from '../components/ui';
 import * as dashboardApi from '../api/dashboard';
-import { formatDate } from '../utils/postmanUi';
 import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
@@ -147,19 +147,7 @@ export default function Dashboard() {
             ) : (
               <ul className="divide-y divide-slate-100">
                 {summary.recentExecutions.map((item) => (
-                  <li key={item.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
-                    <Badge status={item.status}>{item.status}</Badge>
-                    <span className="font-medium text-slate-900">
-                      {item.collection_name}
-                    </span>
-                    <span className="text-slate-500">{formatDate(item.started_at)}</span>
-                    <Link
-                      to={`/executions/${item.id}`}
-                      className="ml-auto font-medium text-slate-800 underline-offset-2 hover:underline"
-                    >
-                      View
-                    </Link>
-                  </li>
+                  <ExecutionRowCompact key={item.id} execution={item} />
                 ))}
               </ul>
             )}
