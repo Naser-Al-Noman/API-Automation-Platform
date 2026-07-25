@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import { LoadingSpinner } from './components/ui';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -15,8 +17,8 @@ function RootRedirect() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100 text-slate-600">
-        Loading…
+      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+        <LoadingSpinner label="Loading…" />
       </div>
     );
   }
@@ -24,8 +26,12 @@ function RootRedirect() {
   return <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />;
 }
 
-function Protected({ children }) {
-  return <ProtectedRoute>{children}</ProtectedRoute>;
+function ProtectedLayout() {
+  return (
+    <ProtectedRoute>
+      <Layout />
+    </ProtectedRoute>
+  );
 }
 
 export default function App() {
@@ -36,14 +42,18 @@ export default function App() {
           <Route path="/" element={<RootRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
-          <Route path="/collections" element={<Protected><Collections /></Protected>} />
-          <Route path="/collections/:id" element={<Protected><Collections /></Protected>} />
-          <Route path="/environments" element={<Protected><Environments /></Protected>} />
-          <Route path="/environments/:id" element={<Protected><Environments /></Protected>} />
-          <Route path="/executions" element={<Protected><ExecutionHistory /></Protected>} />
-          <Route path="/executions/:id" element={<Protected><ExecutionDetail /></Protected>} />
-          <Route path="/api-keys" element={<Protected><ApiKeys /></Protected>} />
+
+          <Route element={<ProtectedLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/collections/:id" element={<Collections />} />
+            <Route path="/environments" element={<Environments />} />
+            <Route path="/environments/:id" element={<Environments />} />
+            <Route path="/executions" element={<ExecutionHistory />} />
+            <Route path="/executions/:id" element={<ExecutionDetail />} />
+            <Route path="/api-keys" element={<ApiKeys />} />
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

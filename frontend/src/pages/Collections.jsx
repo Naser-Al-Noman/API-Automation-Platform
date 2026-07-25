@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import AppShell from '../components/AppShell';
+import { PageHeader } from '../components/Layout';
+import { Badge, Button, Card, EmptyState, LoadingSpinner } from '../components/ui';
 import UploadModal from '../components/UploadModal';
 import SchemaModal from '../components/SchemaModal';
 import * as collectionsApi from '../api/collections';
@@ -54,37 +55,25 @@ function CollectionsList() {
   }
 
   return (
-    <AppShell
-      title="Collections"
-      actions={
-        <button
-          type="button"
-          onClick={() => setShowUpload(true)}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-        >
-          Upload Collection
-        </button>
-      }
-    >
+    <>
+      <PageHeader
+        title="Collections"
+        actions={<Button onClick={() => setShowUpload(true)}>Upload Collection</Button>}
+      />
       {error && (
         <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
       )}
 
       {loading ? (
-        <p className="text-slate-500">Loading collections…</p>
+        <LoadingSpinner label="Loading collections…" />
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-          <p className="text-slate-700">No collections yet — upload one to get started.</p>
-          <button
-            type="button"
-            onClick={() => setShowUpload(true)}
-            className="mt-4 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-          >
-            Upload Collection
-          </button>
-        </div>
+        <EmptyState
+          title="No collections yet — upload one to get started"
+          actionLabel="Upload Collection"
+          onAction={() => setShowUpload(true)}
+        />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <Card padding={false}>
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
@@ -109,19 +98,13 @@ function CollectionsList() {
                   <td className="px-4 py-3 text-slate-600">{item.request_count ?? '—'}</td>
                   <td className="px-4 py-3 text-slate-600">{formatDate(item.created_at)}</td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(item.id, item.name)}
-                      className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
-                    >
-                      Delete
-                    </button>
+                    <Button variant="danger" size="sm" onClick={() => handleDelete(item.id, item.name)}>Delete</Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
 
       {showUpload && (
@@ -131,7 +114,7 @@ function CollectionsList() {
           onSubmit={handleUpload}
         />
       )}
-    </AppShell>
+    </>
   );
 }
 
@@ -247,19 +230,16 @@ function CollectionDetail() {
   const rows = flattenCollectionItems(collection?.postman_json?.item);
 
   return (
-    <AppShell
-      title={collection?.name || 'Collection'}
-      actions={
-        <button
-          type="button"
-          onClick={() => navigate('/collections')}
-          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50"
-        >
-          Back to list
-        </button>
-      }
-    >
-      {loading && <p className="text-slate-500">Loading…</p>}
+    <>
+      <PageHeader
+        title={collection?.name || 'Collection'}
+        actions={
+          <Button variant="secondary" onClick={() => navigate('/collections')}>
+            Back to list
+          </Button>
+        }
+      />
+      {loading && <LoadingSpinner label="Loading…" />}
       {error && (
         <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
       )}
@@ -313,14 +293,9 @@ function CollectionDetail() {
                       ))}
                     </select>
                   </label>
-                  <button
-                    type="button"
-                    onClick={handleRun}
-                    disabled={running}
-                    className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
-                  >
+                  <Button onClick={handleRun} disabled={running}>
                     {running ? 'Starting…' : 'Run'}
-                  </button>
+                  </Button>
                 </div>
               )}
               {runError && (
@@ -436,31 +411,25 @@ function CollectionDetail() {
                           </span>
                         )}
                         {existing && (
-                          <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
-                            Schema defined
-                          </span>
+                          <Badge variant="success">Schema defined</Badge>
                         )}
                         <div className="ml-auto flex flex-wrap gap-2">
-                          <button
-                            type="button"
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() =>
                               setSchemaModal({
                                 endpoint: row.endpoint,
                                 existing,
                               })
                             }
-                            className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-slate-50"
                           >
                             {existing ? 'Edit Schema' : 'Define Schema'}
-                          </button>
+                          </Button>
                           {existing && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteSchema(existing)}
-                              className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
-                            >
+                            <Button variant="danger" size="sm" onClick={() => handleDeleteSchema(existing)}>
                               Delete Schema
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -481,7 +450,7 @@ function CollectionDetail() {
           onSave={handleSaveSchema}
         />
       )}
-    </AppShell>
+    </>
   );
 }
 

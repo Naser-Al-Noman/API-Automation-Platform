@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import AppShell from '../components/AppShell';
+import { PageHeader } from '../components/Layout';
+import { Badge, Button, Card, LoadingSpinner } from '../components/ui';
 import * as executionsApi from '../api/executions';
 import { formatDate } from '../utils/postmanUi';
-
-function statusBadgeClass(status) {
-  if (status === 'passed') return 'bg-emerald-100 text-emerald-800';
-  if (status === 'failed') return 'bg-red-100 text-red-800';
-  if (status === 'running') return 'bg-amber-100 text-amber-900';
-  return 'bg-slate-100 text-slate-700';
-}
 
 function durationLabel(startedAt, finishedAt) {
   if (!startedAt || !finishedAt) return '—';
@@ -103,33 +97,25 @@ export default function ExecutionDetail() {
   const requests = Array.isArray(summary?.requests) ? summary.requests : [];
 
   return (
-    <AppShell
-      title={execution ? `Execution #${execution.id}` : 'Execution'}
-      actions={
-        <Link
-          to="/executions"
-          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50"
-        >
-          Back to history
-        </Link>
-      }
-    >
-      {loading && <p className="text-slate-500">Loading execution…</p>}
+    <>
+      <PageHeader
+        title={execution ? `Execution #${execution.id}` : 'Execution'}
+        actions={
+          <Link to="/executions">
+            <Button variant="secondary">Back to history</Button>
+          </Link>
+        }
+      />
+      {loading && <LoadingSpinner label="Loading execution…" />}
       {error && (
         <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
       )}
 
       {!loading && !error && execution && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <Card>
             <div className="flex flex-wrap items-center gap-3">
-              <span
-                className={`rounded px-2.5 py-1 text-xs font-semibold uppercase ${statusBadgeClass(
-                  execution.status
-                )}`}
-              >
-                {execution.status}
-              </span>
+              <Badge status={execution.status}>{execution.status}</Badge>
               {execution.status === 'running' && (
                 <span className="text-sm text-slate-500">Running — polling for results…</span>
               )}
@@ -157,7 +143,7 @@ export default function ExecutionDetail() {
                 </dd>
               </div>
             </dl>
-          </div>
+          </Card>
 
           {execution.status !== 'running' && summary && (
             <>
@@ -191,13 +177,7 @@ export default function ExecutionDetail() {
               )}
 
               <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={openReport}
-                  className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-                >
-                  View Full HTML Report
-                </button>
+                <Button onClick={openReport}>View Full HTML Report</Button>
                 {reportError && (
                   <span className="text-sm text-red-700">{reportError}</span>
                 )}
@@ -305,6 +285,6 @@ export default function ExecutionDetail() {
           )}
         </div>
       )}
-    </AppShell>
+    </>
   );
 }
