@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import UploadModal from '../components/UploadModal';
+import SchemaModal from '../components/SchemaModal';
 import * as collectionsApi from '../api/collections';
 import * as environmentsApi from '../api/environments';
 import * as executionsApi from '../api/executions';
+import * as schemasApi from '../api/schemas';
 import { flattenCollectionItems, formatDate } from '../utils/postmanUi';
 
 function CollectionsList() {
@@ -137,11 +139,18 @@ function CollectionDetail() {
   const navigate = useNavigate();
   const [collection, setCollection] = useState(null);
   const [environments, setEnvironments] = useState([]);
+  const [schemas, setSchemas] = useState([]);
   const [selectedEnvId, setSelectedEnvId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [runError, setRunError] = useState('');
   const [running, setRunning] = useState(false);
+  const [schemaModal, setSchemaModal] = useState(null); // { endpoint, existing }
+
+  const loadSchemas = useCallback(async () => {
+    const data = await schemasApi.listSchemas(Number(id));
+    setSchemas(data);
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -150,13 +159,15 @@ function CollectionDetail() {
       setLoading(true);
       setError('');
       try {
-        const [data, envs] = await Promise.all([
+        const [data, envs, schemaRows] = await Promise.all([
           collectionsApi.getCollection(id),
           environmentsApi.listEnvironments(),
+          schemasApi.listSchemas(Number(id)),
         ]);
         if (!cancelled) {
           setCollection(data);
           setEnvironments(envs);
+          setSchemas(schemaRows);
           if (envs.length > 0) {
             setSelectedEnvId(String(envs[0].id));
           }
@@ -197,6 +208,41 @@ function CollectionDetail() {
     }
   }
 
+  function schemaForEndpoint(endpoint, name) {
+    return (
+      schemas.find((s) => s.endpoint === endpoint) ||
+      schemas.find((s) => s.endpoint === name) ||
+      null
+    );
+  }
+
+  async function handleSaveSchema(schemaJson) {
+    const existing = schemaModal?.existing;
+    if (existing) {
+      await schemasApi.updateSchema(existing.id, {
+        endpoint: schemaModal.endpoint,
+        schema_json: schemaJson,
+      });
+    } else {
+      await schemasApi.createSchema({
+        collectionId: Number(id),
+        endpoint: schemaModal.endpoint,
+        schema_json: schemaJson,
+      });
+    }
+    await loadSchemas();
+  }
+
+  async function handleDeleteSchema(schema) {
+    if (!window.confirm(`Delete schema for "${schema.endpoint}"?`)) return;
+    try {
+      await schemasApi.deleteSchema(schema.id);
+      await loadSchemas();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || 'Delete failed');
+    }
+  }
+
   const rows = flattenCollectionItems(collection?.postman_json?.item);
 
   return (
@@ -230,12 +276,8 @@ function CollectionDetail() {
                 <dd className="font-medium text-slate-900">{collection.request_count}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Schema</dt>
-                <dd className="font-medium text-slate-900">
-                  {collection.postman_json?.info?.schema?.includes('v2.1')
-                    ? 'Postman Collection v2.1'
-                    : 'Postman Collection'}
-                </dd>
+                <dt className="text-slate-500">Schemas</dt>
+                <dd className="font-medium text-slate-900">{schemas.length}</dd>
               </div>
             </dl>
 
@@ -294,13 +336,21 @@ function CollectionDetail() {
               <p className="px-4 py-8 text-sm text-slate-500">No requests found in this collection.</p>
             ) : (
               <ul className="divide-y divide-slate-100">
-                {rows.map((row, index) => (
-                  <li key={`${row.type}-${row.name}-${index}`} className="px-4 py-3 text-sm">
-                    {row.type === 'folder' ? (
-                      <div className="font-medium text-slate-500">
-                        {' '.repeat(row.path.length)}[Folder] {row.name}
-                      </div>
-                    ) : (
+                {rows.map((row, index) => {
+                  if (row.type === 'folder') {
+                    return (
+                      <li key={`folder-${row.name}-${index}`} className="px-4 py-3 text-sm">
+                        <div className="font-medium text-slate-500">
+                          {' '.repeat(row.path.length)}[Folder] {row.name}
+                        </div>
+                      </li>
+                    );
+                  }
+
+                  const existing = schemaForEndpoint(row.endpoint, row.name);
+
+                  return (
+                    <li key={`req-${row.endpoint}-${index}`} className="px-4 py-3 text-sm">
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="w-16 shrink-0 rounded bg-slate-900 px-2 py-0.5 text-center text-xs font-semibold text-white">
                           {row.method}
@@ -311,14 +361,51 @@ function CollectionDetail() {
                             {row.path.join(' / ')}
                           </span>
                         )}
+                        {existing && (
+                          <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                            Schema defined
+                          </span>
+                        )}
+                        <div className="ml-auto flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSchemaModal({
+                                endpoint: row.endpoint,
+                                existing,
+                              })
+                            }
+                            className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 hover:bg-slate-50"
+                          >
+                            {existing ? 'Edit Schema' : 'Define Schema'}
+                          </button>
+                          {existing && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSchema(existing)}
+                              className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+                            >
+                              Delete Schema
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
         </div>
+      )}
+
+      {schemaModal && (
+        <SchemaModal
+          endpoint={schemaModal.endpoint}
+          existingSchema={schemaModal.existing}
+          onClose={() => setSchemaModal(null)}
+          onSave={handleSaveSchema}
+        />
       )}
     </AppShell>
   );

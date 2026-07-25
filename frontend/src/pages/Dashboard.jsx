@@ -9,13 +9,13 @@ export default function Dashboard() {
     <AppShell title="Dashboard">
       <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-          Phase 4 · Newman Execution
+          Phase 5 · JSON Schema Validation
         </p>
         <h2 className="mt-2 text-2xl font-bold text-slate-900">
           Welcome, {user?.email}
         </h2>
         <p className="mt-2 text-slate-600">
-          Upload collections and environments, then run them with Newman and review HTML reports.
+          Define JSON Schemas per endpoint, run Newman, and see schema pass/fail next to test results.
         </p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-3">

@@ -9,11 +9,15 @@ export function flattenCollectionItems(items, folderPath = []) {
         typeof item.request.method === 'string'
           ? item.request.method.toUpperCase()
           : 'REQUEST';
+      const name = item.name || 'Untitled request';
+      const endpoint =
+        folderPath.length > 0 ? [...folderPath, name].join('/') : name;
       rows.push({
         type: 'request',
-        name: item.name || 'Untitled request',
+        name,
         method,
         path: folderPath,
+        endpoint,
       });
     } else if (Array.isArray(item.item)) {
       const nextPath = [...folderPath, item.name || 'Folder'];

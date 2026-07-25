@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
 const environmentRoutes = require('./routes/environmentRoutes');
 const executionRoutes = require('./routes/executionRoutes');
+const schemaRoutes = require('./routes/schemaRoutes');
 
 const app = express();
 
@@ -19,12 +20,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/environments', environmentRoutes);
 app.use('/api/executions', executionRoutes);
+app.use('/api/schemas', schemaRoutes);
 
 app.get('/', (_req, res) => {
   res.json({
     name: 'API Automation Platform',
     version: '0.1.0',
-    phase: 4,
+    phase: 5,
   });
 });
 

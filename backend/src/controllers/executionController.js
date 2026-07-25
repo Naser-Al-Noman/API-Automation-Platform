@@ -52,11 +52,26 @@ async function findOwnedExecution(executionId, userId) {
 
 async function processExecutionAsync({
   executionId,
+  collectionId,
   collectionJson,
   environmentJson,
 }) {
   try {
-    const result = await runCollection(collectionJson, environmentJson, executionId);
+    const schemaRows = await query(
+      `SELECT endpoint, schema_json FROM schemas WHERE collection_id = $1`,
+      [collectionId]
+    );
+    const schemasByEndpoint = {};
+    for (const row of schemaRows.rows) {
+      schemasByEndpoint[row.endpoint] = row.schema_json;
+    }
+
+    const result = await runCollection(
+      collectionJson,
+      environmentJson,
+      executionId,
+      schemasByEndpoint
+    );
     const reportUrl = result.reportPath
       ? `/api/executions/${executionId}/report`
       : null;
@@ -134,6 +149,7 @@ async function startExecution(req, res) {
     setImmediate(() => {
       processExecutionAsync({
         executionId: execution.id,
+        collectionId: collection.id,
         collectionJson: collection.postman_json,
         environmentJson: environment.variables_json,
       });
