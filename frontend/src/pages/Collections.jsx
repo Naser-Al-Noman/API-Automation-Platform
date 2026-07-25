@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import UploadModal from '../components/UploadModal';
 import * as collectionsApi from '../api/collections';
+import * as environmentsApi from '../api/environments';
+import * as executionsApi from '../api/executions';
 import { flattenCollectionItems, formatDate } from '../utils/postmanUi';
 
 function CollectionsList() {
@@ -134,8 +136,12 @@ function CollectionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [collection, setCollection] = useState(null);
+  const [environments, setEnvironments] = useState([]);
+  const [selectedEnvId, setSelectedEnvId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [runError, setRunError] = useState('');
+  const [running, setRunning] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -144,8 +150,17 @@ function CollectionDetail() {
       setLoading(true);
       setError('');
       try {
-        const data = await collectionsApi.getCollection(id);
-        if (!cancelled) setCollection(data);
+        const [data, envs] = await Promise.all([
+          collectionsApi.getCollection(id),
+          environmentsApi.listEnvironments(),
+        ]);
+        if (!cancelled) {
+          setCollection(data);
+          setEnvironments(envs);
+          if (envs.length > 0) {
+            setSelectedEnvId(String(envs[0].id));
+          }
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err.response?.data?.message || err.message || 'Failed to load collection');
@@ -160,6 +175,27 @@ function CollectionDetail() {
       cancelled = true;
     };
   }, [id]);
+
+  async function handleRun() {
+    setRunError('');
+    if (!selectedEnvId) {
+      setRunError('Select an environment to run against');
+      return;
+    }
+
+    setRunning(true);
+    try {
+      const execution = await executionsApi.startExecution({
+        collectionId: Number(id),
+        environmentId: Number(selectedEnvId),
+      });
+      navigate(`/executions/${execution.id}`);
+    } catch (err) {
+      setRunError(err.response?.data?.message || err.message || 'Failed to start run');
+    } finally {
+      setRunning(false);
+    }
+  }
 
   const rows = flattenCollectionItems(collection?.postman_json?.item);
 
@@ -202,6 +238,52 @@ function CollectionDetail() {
                 </dd>
               </div>
             </dl>
+
+            <div className="mt-5 border-t border-slate-100 pt-4">
+              <p className="text-sm font-medium text-slate-800">Run with Newman</p>
+              {environments.length === 0 ? (
+                <p className="mt-2 text-sm text-slate-500">
+                  Upload an environment first, then come back to run this collection.{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/environments')}
+                    className="font-medium text-slate-900 underline"
+                  >
+                    Go to Environments
+                  </button>
+                </p>
+              ) : (
+                <div className="mt-3 flex flex-wrap items-end gap-3">
+                  <label className="block min-w-[220px] flex-1">
+                    <span className="mb-1 block text-xs font-medium text-slate-600">
+                      Environment
+                    </span>
+                    <select
+                      value={selectedEnvId}
+                      onChange={(e) => setSelectedEnvId(e.target.value)}
+                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500"
+                    >
+                      {environments.map((env) => (
+                        <option key={env.id} value={env.id}>
+                          {env.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRun}
+                    disabled={running}
+                    className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    {running ? 'Starting…' : 'Run'}
+                  </button>
+                </div>
+              )}
+              {runError && (
+                <p className="mt-2 text-sm text-red-700">{runError}</p>
+              )}
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
