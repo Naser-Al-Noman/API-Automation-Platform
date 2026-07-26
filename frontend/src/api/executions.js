@@ -14,6 +14,23 @@ async function blobOrError(blob) {
   return blob;
 }
 
+/** Prefer API `{ message }` from JSON error blobs over Axios's generic status text. */
+async function throwParsedBlobError(err) {
+  if (err.response?.data instanceof Blob) {
+    try {
+      const parsed = JSON.parse(await err.response.data.text());
+      if (parsed?.message) {
+        throw new Error(parsed.message);
+      }
+    } catch (inner) {
+      if (inner instanceof Error && !(inner instanceof SyntaxError)) {
+        throw inner;
+      }
+    }
+  }
+  throw err;
+}
+
 export async function startExecution({ collectionId, environmentId }) {
   const { data } = await api.post('/api/executions', { collectionId, environmentId });
   return data;
@@ -56,10 +73,14 @@ export async function getExecutionStatus(id) {
 }
 
 export async function fetchExecutionReportBlob(id) {
-  const { data } = await api.get(`/api/executions/${id}/report`, {
-    responseType: 'blob',
-  });
-  return blobOrError(data);
+  try {
+    const { data } = await api.get(`/api/executions/${id}/report`, {
+      responseType: 'blob',
+    });
+    return blobOrError(data);
+  } catch (err) {
+    await throwParsedBlobError(err);
+  }
 }
 
 export async function downloadExecutionReport(id) {
@@ -71,14 +92,15 @@ export async function downloadExecutionReport(id) {
   } catch (err) {
     // Fallback: same HTML via the inline report endpoint (works on older backends)
     if (err.response?.status === 404) {
-      const { data } = await api.get(`/api/executions/${id}/report`, {
-        responseType: 'blob',
-      });
-      return blobOrError(data);
+      try {
+        const { data } = await api.get(`/api/executions/${id}/report`, {
+          responseType: 'blob',
+        });
+        return blobOrError(data);
+      } catch (fallbackErr) {
+        await throwParsedBlobError(fallbackErr);
+      }
     }
-    if (err.response?.data instanceof Blob) {
-      await blobOrError(err.response.data);
-    }
-    throw err;
+    await throwParsedBlobError(err);
   }
 }

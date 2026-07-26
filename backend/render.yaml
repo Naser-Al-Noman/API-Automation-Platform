@@ -14,7 +14,8 @@ services:
     # If this Blueprint is used from the monorepo root, uncomment:
     # rootDir: backend
     buildCommand: npm install
-    startCommand: npm start
+    # migrate is idempotent — adds report_html and any other schema updates
+    startCommand: npm run migrate && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION

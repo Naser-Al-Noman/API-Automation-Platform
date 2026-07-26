@@ -193,7 +193,7 @@ npm run seed:executions -- --email demo@example.com --password demopass123 --col
 - **users** — email, password_hash
 - **collections** — Postman collection JSON
 - **environments** — Postman environment / variables JSON
-- **executions** — status, timings, report_url, summary_json
+- **executions** — status, timings, report_url, summary_json, report_html (persisted Newman HTML)
 - **schemas** — per-endpoint JSON Schema
 - **api_keys** — hashed keys for CI (`X-API-Key`)
 
@@ -201,7 +201,6 @@ npm run seed:executions -- --email demo@example.com --password demopass123 --col
 
 These are intentional follow-ups, not blockers for the current MVP:
 
-- **Persistent report storage** — HTML reports live under `backend/reports/` on the Render disk, which is ephemeral across restarts/redeploys. Moving reports to object storage (S3/R2) would keep downloads available indefinitely. See `backend/REPORTS.md`.
 - **Execution queue / workers** — Newman currently runs in-process on the web service. A job queue and worker process would isolate long runs and avoid stuck `running` rows if the instance restarts mid-execution.
 - **Tunable timeouts at scale** — Collection and per-request timeouts protect the host; very large suites may need higher limits, suite splitting, or parallel workers.
 - **Rate limiting on CI / auth** — API-key and login endpoints would benefit from rate limits and abuse controls before heavy public CI usage.

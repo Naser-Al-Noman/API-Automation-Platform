@@ -391,6 +391,10 @@ export default function ExecutionDetail() {
                   {!reportLoading && reportError && (
                     <div className="px-4 py-8 text-center text-sm text-slate-600">
                       <p>{reportError}</p>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Re-run this collection to generate a new report. New runs
+                        store the HTML in the database so it survives server restarts.
+                      </p>
                       <Button className="mt-3" variant="secondary" onClick={handleDownload}>
                         Download Report
                       </Button>

@@ -31,8 +31,13 @@ CREATE TABLE IF NOT EXISTS executions (
   started_at TIMESTAMPTZ,
   finished_at TIMESTAMPTZ,
   report_url TEXT,
-  summary_json JSONB
+  summary_json JSONB,
+  -- Full Newman HTML report; survives Render ephemeral disk wipes
+  report_html TEXT
 );
+
+-- Existing databases created before report_html existed
+ALTER TABLE executions ADD COLUMN IF NOT EXISTS report_html TEXT;
 
 CREATE TABLE IF NOT EXISTS schemas (
   id SERIAL PRIMARY KEY,

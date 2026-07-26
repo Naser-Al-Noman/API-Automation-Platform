@@ -34,8 +34,11 @@ async function findOwnedEnvironment(environmentId, userId) {
 }
 
 async function findOwnedExecution(executionId, userId) {
+  // Omit report_html here — it can be large; load only when serving the report.
   const result = await query(
-    `SELECT e.*, c.name AS collection_name, c.user_id, env.name AS environment_name
+    `SELECT e.id, e.collection_id, e.environment_id, e.status,
+            e.started_at, e.finished_at, e.report_url, e.summary_json,
+            c.name AS collection_name, c.user_id, env.name AS environment_name
      FROM executions e
      JOIN collections c ON c.id = e.collection_id
      LEFT JOIN environments env ON env.id = e.environment_id
@@ -72,6 +75,16 @@ async function processExecutionAsync({
       executionId,
       schemasByEndpoint
     );
+
+    let reportHtml = null;
+    if (result.reportPath && fs.existsSync(result.reportPath)) {
+      try {
+        reportHtml = fs.readFileSync(result.reportPath, 'utf8');
+      } catch (readErr) {
+        console.error(`execution ${executionId}: failed to read report file:`, readErr);
+      }
+    }
+
     const reportUrl = result.reportPath
       ? `/api/executions/${executionId}/report`
       : null;
@@ -81,9 +94,10 @@ async function processExecutionAsync({
        SET status = $1,
            finished_at = NOW(),
            summary_json = $2::jsonb,
-           report_url = $3
-       WHERE id = $4`,
-      [result.status, JSON.stringify(result.summary), reportUrl, executionId]
+           report_url = $3,
+           report_html = $4
+       WHERE id = $5`,
+      [result.status, JSON.stringify(result.summary), reportUrl, reportHtml, executionId]
     );
   } catch (err) {
     console.error(`execution ${executionId} failed:`, err);
@@ -332,13 +346,20 @@ async function getExecutionStatus(req, res) {
   }
 }
 
-async function resolveOwnedReportPath(executionId, userId) {
+const REPORT_MISSING_MESSAGE =
+  'Report is no longer available for this execution. Re-run the collection to generate a new report — new runs persist HTML in the database.';
+
+/**
+ * Resolve an owned execution's HTML report from local disk or Neon (report_html).
+ * Prefers local file (fast after a fresh run); falls back to DB.
+ */
+async function resolveOwnedReport(executionId, userId) {
   const id = Number(executionId);
   if (!Number.isInteger(id) || id < 1) {
     return { error: { status: 400, message: 'Invalid execution id' } };
   }
 
-  const { execution, error } = await findOwnedExecution(id, userId);
+  const { error } = await findOwnedExecution(id, userId);
   if (error) {
     return { error };
   }
@@ -346,26 +367,41 @@ async function resolveOwnedReportPath(executionId, userId) {
   ensureReportsDir();
   const reportPath = path.join(REPORTS_DIR, `${id}.html`);
 
-  if (!fs.existsSync(reportPath)) {
-    return { error: { status: 404, message: 'Report file not found for this execution' } };
+  if (fs.existsSync(reportPath)) {
+    return { id, source: 'local', reportPath };
   }
 
-  return { id, reportPath };
+  const htmlResult = await query(
+    `SELECT report_html FROM executions WHERE id = $1`,
+    [id]
+  );
+  const reportHtml = htmlResult.rows[0]?.report_html;
+  if (reportHtml) {
+    return { id, source: 'db', buffer: Buffer.from(reportHtml, 'utf8') };
+  }
+
+  return { error: { status: 404, message: REPORT_MISSING_MESSAGE } };
+}
+
+function sendReportResponse(res, resolved, disposition) {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Content-Disposition', disposition);
+
+  if (resolved.source === 'local') {
+    return res.sendFile(resolved.reportPath);
+  }
+
+  return res.send(resolved.buffer);
 }
 
 async function getExecutionReport(req, res) {
   try {
-    const { id, reportPath, error } = await resolveOwnedReportPath(
-      req.params.id,
-      req.user.id
-    );
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+    const resolved = await resolveOwnedReport(req.params.id, req.user.id);
+    if (resolved.error) {
+      return res.status(resolved.error.status).json({ message: resolved.error.message });
     }
 
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Content-Disposition', 'inline');
-    return res.sendFile(reportPath);
+    return sendReportResponse(res, resolved, 'inline');
   } catch (err) {
     console.error('getExecutionReport error:', err);
     return res.status(500).json({ message: 'Failed to fetch execution report' });
@@ -374,20 +410,16 @@ async function getExecutionReport(req, res) {
 
 async function downloadExecutionReport(req, res) {
   try {
-    const { id, reportPath, error } = await resolveOwnedReportPath(
-      req.params.id,
-      req.user.id
-    );
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+    const resolved = await resolveOwnedReport(req.params.id, req.user.id);
+    if (resolved.error) {
+      return res.status(resolved.error.status).json({ message: resolved.error.message });
     }
 
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="execution-${id}-report.html"`
+    return sendReportResponse(
+      res,
+      resolved,
+      `attachment; filename="execution-${resolved.id}-report.html"`
     );
-    return res.sendFile(reportPath);
   } catch (err) {
     console.error('downloadExecutionReport error:', err);
     return res.status(500).json({ message: 'Failed to download execution report' });
