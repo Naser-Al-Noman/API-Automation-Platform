@@ -59,6 +59,8 @@ Upload collections and environments, run tests from the UI or CI (API keys), val
 │   └── src/
 ├── frontend/                # React Vite app (Vercel)
 │   └── vercel.json          # SPA route rewrites
+├── docs/screenshots/        # README UI previews
+├── scripts/                 # capture-screenshots helper
 ├── .github/workflows/       # CI workflow template
 ├── LICENSE                  # MIT
 └── README.md
@@ -66,18 +68,12 @@ Upload collections and environments, run tests from the UI or CI (API keys), val
 
 ## Screenshots
 
-_Placeholders — add real screenshots after final UI polish._
-
 | Screen | Preview |
 |--------|---------|
-| Dashboard | _Coming soon_ |
-| Collections | _Coming soon_ |
-| Execution detail / report | _Coming soon_ |
-| Analytics | _Coming soon_ |
-
-<!-- Example once you have images under docs/screenshots/:
 | Dashboard | ![Dashboard](docs/screenshots/dashboard.png) |
--->
+| Collections | ![Collections](docs/screenshots/collections.png) |
+| Execution detail / report | ![Execution detail](docs/screenshots/execution-detail.png) |
+| Analytics | ![Analytics](docs/screenshots/analytics.png) |
 
 ## Build log (phases)
 
