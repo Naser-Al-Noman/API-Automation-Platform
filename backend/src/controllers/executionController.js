@@ -426,6 +426,38 @@ async function downloadExecutionReport(req, res) {
   }
 }
 
+async function deleteExecution(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id < 1) {
+      return res.status(400).json({ message: 'Invalid execution id' });
+    }
+
+    const { error } = await findOwnedExecution(id, req.user.id);
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    await query(`DELETE FROM executions WHERE id = $1`, [id]);
+
+    // Best-effort cleanup of ephemeral local report file
+    try {
+      ensureReportsDir();
+      const reportPath = path.join(REPORTS_DIR, `${id}.html`);
+      if (fs.existsSync(reportPath)) {
+        fs.unlinkSync(reportPath);
+      }
+    } catch (fileErr) {
+      console.warn(`deleteExecution: could not remove local report for ${id}:`, fileErr.message);
+    }
+
+    return res.status(204).send();
+  } catch (err) {
+    console.error('deleteExecution error:', err);
+    return res.status(500).json({ message: 'Failed to delete execution' });
+  }
+}
+
 module.exports = {
   startExecution,
   listExecutions,
@@ -433,4 +465,5 @@ module.exports = {
   getExecutionStatus,
   getExecutionReport,
   downloadExecutionReport,
+  deleteExecution,
 };

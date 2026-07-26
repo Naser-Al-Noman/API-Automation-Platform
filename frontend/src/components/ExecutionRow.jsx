@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Badge } from './ui';
+import { Badge, Button } from './ui';
 import { formatDate } from '../utils/postmanUi';
 
 export function durationLabel(startedAt, finishedAt, status) {
@@ -29,7 +29,7 @@ export function ExecutionRowCompact({ execution }) {
 }
 
 /** Table row for Execution History */
-export default function ExecutionRow({ execution }) {
+export default function ExecutionRow({ execution, onDelete, deleting }) {
   return (
     <tr className="hover:bg-slate-50">
       <td className="px-4 py-3 font-medium text-slate-900">{execution.collection_name}</td>
@@ -42,12 +42,24 @@ export default function ExecutionRow({ execution }) {
         {durationLabel(execution.started_at, execution.finished_at, execution.status)}
       </td>
       <td className="px-4 py-3">
-        <Link
-          to={`/executions/${execution.id}`}
-          className="font-medium text-slate-900 underline-offset-2 hover:underline"
-        >
-          View
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to={`/executions/${execution.id}`}
+            className="font-medium text-slate-900 underline-offset-2 hover:underline"
+          >
+            View
+          </Link>
+          {onDelete && (
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={deleting}
+              onClick={() => onDelete(execution)}
+            >
+              {deleting ? 'Deleting…' : 'Delete'}
+            </Button>
+          )}
+        </div>
       </td>
     </tr>
   );

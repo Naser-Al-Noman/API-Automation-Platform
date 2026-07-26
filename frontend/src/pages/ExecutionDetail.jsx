@@ -19,6 +19,8 @@ export default function ExecutionDetail() {
   const [rerunning, setRerunning] = useState(false);
   const [rerunError, setRerunError] = useState('');
   const [downloadError, setDownloadError] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -181,6 +183,25 @@ export default function ExecutionDetail() {
     }
   }
 
+  async function handleDelete() {
+    if (
+      !window.confirm(
+        `Delete execution #${id}? This permanently removes it and its report from the database.`
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await executionsApi.deleteExecution(id);
+      navigate('/executions');
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || err.message || 'Failed to delete execution');
+      setDeleting(false);
+    }
+  }
+
   const summary = execution?.summary_json;
   const requests = Array.isArray(summary?.requests) ? summary.requests : [];
   const canRerun =
@@ -195,8 +216,13 @@ export default function ExecutionDetail() {
         actions={
           <div className="flex flex-wrap gap-2">
             {canRerun && (
-              <Button onClick={handleRerun} disabled={rerunning}>
+              <Button onClick={handleRerun} disabled={rerunning || deleting}>
                 {rerunning ? 'Starting…' : 'Re-run this collection'}
+              </Button>
+            )}
+            {execution && (
+              <Button variant="danger" onClick={handleDelete} disabled={deleting || rerunning}>
+                {deleting ? 'Deleting…' : 'Delete'}
               </Button>
             )}
             <Link to="/executions">
@@ -211,6 +237,9 @@ export default function ExecutionDetail() {
       )}
       {rerunError && (
         <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{rerunError}</div>
+      )}
+      {deleteError && (
+        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{deleteError}</div>
       )}
 
       {!loading && !error && execution && (

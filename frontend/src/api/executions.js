@@ -104,3 +104,7 @@ export async function downloadExecutionReport(id) {
     await throwParsedBlobError(err);
   }
 }
+
+export async function deleteExecution(id) {
+  await api.delete(`/api/executions/${id}`);
+}

@@ -64,6 +64,7 @@ export default function ExecutionHistory() {
   const [error, setError] = useState('');
   const [collections, setCollections] = useState([]);
   const [environments, setEnvironments] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
 
   const debounceRef = useRef(null);
 
@@ -176,6 +177,27 @@ export default function ExecutionHistory() {
   function clearFilters() {
     setSearchInput('');
     setSearchParams(new URLSearchParams(), { replace: true });
+  }
+
+  async function handleDelete(execution) {
+    const label = `#${execution.id} (${execution.collection_name})`;
+    if (
+      !window.confirm(
+        `Delete execution ${label}? This permanently removes it and its report from the database.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(execution.id);
+    setError('');
+    try {
+      await executionsApi.deleteExecution(execution.id);
+      await load();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to delete execution');
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   const selectClass =
@@ -315,12 +337,17 @@ export default function ExecutionHistory() {
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Started</th>
                     <th className="px-4 py-3 font-medium">Duration</th>
-                    <th className="px-4 py-3 font-medium">Details</th>
+                    <th className="px-4 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {items.map((item) => (
-                    <ExecutionRow key={item.id} execution={item} />
+                    <ExecutionRow
+                      key={item.id}
+                      execution={item}
+                      onDelete={handleDelete}
+                      deleting={deletingId === item.id}
+                    />
                   ))}
                 </tbody>
               </table>
