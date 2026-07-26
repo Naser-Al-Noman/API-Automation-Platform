@@ -10,10 +10,41 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { useTheme } from '../context/ThemeContext';
 import { EmptyState, LoadingSpinner } from './ui';
 
 const CHART_EMPTY =
   'No execution data yet for this range — run some collections first';
+
+function cssVar(name, fallback) {
+  if (typeof window === 'undefined') return fallback;
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+function useChartColors() {
+  const { theme } = useTheme();
+  // theme in deps so colors refresh after toggle
+  void theme;
+  return {
+    grid: cssVar('--app-chart-grid', '#334155'),
+    line: cssVar('--app-chart-line', '#38bdf8'),
+    line2: cssVar('--app-chart-line-2', '#7dd3fc'),
+    muted: cssVar('--app-fg-muted', '#94a3b8'),
+    surface: cssVar('--app-surface', '#0f172a'),
+    border: cssVar('--app-border', '#334155'),
+    fg: cssVar('--app-fg-secondary', '#e2e8f0'),
+  };
+}
+
+function tooltipStyle(colors) {
+  return {
+    backgroundColor: colors.surface,
+    border: `1px solid ${colors.border}`,
+    borderRadius: '8px',
+    color: colors.fg,
+  };
+}
 
 export function ChartCard({
   title,
@@ -25,10 +56,10 @@ export function ChartCard({
   height = 280,
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-4">
-        <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
-        {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
+        <h2 className="text-sm font-semibold text-fg-secondary">{title}</h2>
+        {description && <p className="mt-0.5 text-xs text-fg-muted">{description}</p>}
       </div>
       {loading ? (
         <div style={{ minHeight: height }} className="flex items-center justify-center">
@@ -51,6 +82,8 @@ function passRateColor(rate) {
 }
 
 export function PassRateTrendChart({ data, height = 280, sparkline = false }) {
+  const colors = useChartColors();
+
   if (sparkline) {
     return (
       <ResponsiveContainer width="100%" height={height}>
@@ -58,7 +91,7 @@ export function PassRateTrendChart({ data, height = 280, sparkline = false }) {
           <Line
             type="monotone"
             dataKey="passRate"
-            stroke="#0f172a"
+            stroke={colors.line}
             strokeWidth={2}
             dot={false}
             isAnimationActive={false}
@@ -72,10 +105,17 @@ export function PassRateTrendChart({ data, height = 280, sparkline = false }) {
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#94a3b8" />
-          <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="#94a3b8" unit="%" width={40} />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+          <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={colors.muted} />
+          <YAxis
+            domain={[0, 100]}
+            tick={{ fontSize: 11 }}
+            stroke={colors.muted}
+            unit="%"
+            width={40}
+          />
           <Tooltip
+            contentStyle={tooltipStyle(colors)}
             formatter={(value, name) => {
               if (name === 'passRate') return [`${value}%`, 'Pass rate'];
               return [value, name];
@@ -84,7 +124,7 @@ export function PassRateTrendChart({ data, height = 280, sparkline = false }) {
           <Line
             type="monotone"
             dataKey="passRate"
-            stroke="#0f172a"
+            stroke={colors.line}
             strokeWidth={2}
             dot={{ r: 3 }}
             activeDot={{ r: 5 }}
@@ -96,18 +136,23 @@ export function PassRateTrendChart({ data, height = 280, sparkline = false }) {
 }
 
 export function ResponseTimeChart({ data, height = 280 }) {
+  const colors = useChartColors();
+
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#94a3b8" />
-          <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" unit=" ms" width={56} />
-          <Tooltip formatter={(value) => [`${value} ms`, 'Avg response']} />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+          <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={colors.muted} />
+          <YAxis tick={{ fontSize: 11 }} stroke={colors.muted} unit=" ms" width={56} />
+          <Tooltip
+            contentStyle={tooltipStyle(colors)}
+            formatter={(value) => [`${value} ms`, 'Avg response']}
+          />
           <Line
             type="monotone"
             dataKey="avgResponseTimeMs"
-            stroke="#0369a1"
+            stroke={colors.line2}
             strokeWidth={2}
             dot={{ r: 3 }}
           />
@@ -118,6 +163,7 @@ export function ResponseTimeChart({ data, height = 280 }) {
 }
 
 export function EndpointReliabilityChart({ data }) {
+  const colors = useChartColors();
   const chartData = data.map((d) => ({
     ...d,
     label: d.endpoint.length > 40 ? `${d.endpoint.slice(0, 37)}…` : d.endpoint,
@@ -132,10 +178,11 @@ export function EndpointReliabilityChart({ data }) {
           data={chartData}
           margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} horizontal={false} />
           <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
           <YAxis type="category" dataKey="label" width={140} tick={{ fontSize: 11 }} />
           <Tooltip
+            contentStyle={tooltipStyle(colors)}
             formatter={(value, _name, props) => [
               `${value}% (${props.payload.passed}/${props.payload.totalRuns})`,
               'Pass rate',
@@ -154,6 +201,7 @@ export function EndpointReliabilityChart({ data }) {
 }
 
 export function SchemaValidationChart({ data, height = 280 }) {
+  const colors = useChartColors();
   const chartData = data.map((d) => ({
     ...d,
     label: d.endpoint.length > 28 ? `${d.endpoint.slice(0, 25)}…` : d.endpoint,
@@ -163,7 +211,7 @@ export function SchemaValidationChart({ data, height = 280 }) {
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 48 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
           <XAxis
             dataKey="label"
             tick={{ fontSize: 10 }}
@@ -174,6 +222,7 @@ export function SchemaValidationChart({ data, height = 280 }) {
           />
           <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={36} />
           <Tooltip
+            contentStyle={tooltipStyle(colors)}
             formatter={(value, name) => [value, name === 'schemaValid' ? 'Valid' : 'Invalid']}
             labelFormatter={(_, payload) => payload?.[0]?.payload?.endpoint || ''}
           />

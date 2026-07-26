@@ -16,11 +16,11 @@ export function ExecutionRowCompact({ execution }) {
   return (
     <li className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
       <Badge status={execution.status}>{execution.status}</Badge>
-      <span className="font-medium text-slate-900">{execution.collection_name}</span>
-      <span className="text-slate-500">{formatDate(execution.started_at)}</span>
+      <span className="font-medium text-fg">{execution.collection_name}</span>
+      <span className="text-fg-muted">{formatDate(execution.started_at)}</span>
       <Link
         to={`/executions/${execution.id}`}
-        className="ml-auto font-medium text-slate-800 underline-offset-2 hover:underline"
+        className="ml-auto font-medium text-fg-secondary underline-offset-2 hover:underline"
       >
         View
       </Link>
@@ -31,21 +31,21 @@ export function ExecutionRowCompact({ execution }) {
 /** Table row for Execution History */
 export default function ExecutionRow({ execution, onDelete, deleting }) {
   return (
-    <tr className="hover:bg-slate-50">
-      <td className="px-4 py-3 font-medium text-slate-900">{execution.collection_name}</td>
-      <td className="px-4 py-3 text-slate-600">{execution.environment_name || '—'}</td>
+    <tr className="hover:bg-surface-2">
+      <td className="px-4 py-3 font-medium text-fg">{execution.collection_name}</td>
+      <td className="px-4 py-3 text-fg-muted">{execution.environment_name || '—'}</td>
       <td className="px-4 py-3">
         <Badge status={execution.status}>{execution.status}</Badge>
       </td>
-      <td className="px-4 py-3 text-slate-600">{formatDate(execution.started_at)}</td>
-      <td className="px-4 py-3 text-slate-600">
+      <td className="px-4 py-3 text-fg-muted">{formatDate(execution.started_at)}</td>
+      <td className="px-4 py-3 text-fg-muted">
         {durationLabel(execution.started_at, execution.finished_at, execution.status)}
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to={`/executions/${execution.id}`}
-            className="font-medium text-slate-900 underline-offset-2 hover:underline"
+            className="font-medium text-fg underline-offset-2 hover:underline"
           >
             View
           </Link>

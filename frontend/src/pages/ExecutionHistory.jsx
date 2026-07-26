@@ -201,9 +201,9 @@ export default function ExecutionHistory() {
   }
 
   const selectClass =
-    'rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500';
+    'rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-border-strong';
   const inputClass =
-    'rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500';
+    'rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-border-strong';
 
   return (
     <>
@@ -214,10 +214,10 @@ export default function ExecutionHistory() {
 
       <Card className="mb-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <p className="text-sm font-medium text-slate-800">Filters</p>
+          <p className="text-sm font-medium text-fg-secondary">Filters</p>
           {activeFilterCount > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-fg-muted">
                 {activeFilterCount} active filter{activeFilterCount === 1 ? '' : 's'}
               </span>
               <Button variant="secondary" size="sm" onClick={clearFilters}>
@@ -229,7 +229,7 @@ export default function ExecutionHistory() {
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Status</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">Status</span>
             <select
               className={`w-full ${selectClass}`}
               value={filters.status}
@@ -243,7 +243,7 @@ export default function ExecutionHistory() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Collection</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">Collection</span>
             <select
               className={`w-full ${selectClass}`}
               value={filters.collectionId}
@@ -259,7 +259,7 @@ export default function ExecutionHistory() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Environment</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">Environment</span>
             <select
               className={`w-full ${selectClass}`}
               value={filters.environmentId}
@@ -275,7 +275,7 @@ export default function ExecutionHistory() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Start date</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">Start date</span>
             <input
               type="date"
               className={`w-full ${inputClass}`}
@@ -285,7 +285,7 @@ export default function ExecutionHistory() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">End date</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">End date</span>
             <input
               type="date"
               className={`w-full ${inputClass}`}
@@ -295,7 +295,7 @@ export default function ExecutionHistory() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Search</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">Search</span>
             <input
               type="search"
               placeholder="Collection name…"
@@ -308,7 +308,7 @@ export default function ExecutionHistory() {
       </Card>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
 
       {loading ? (
@@ -329,8 +329,8 @@ export default function ExecutionHistory() {
         <>
           <Card padding={false}>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50 text-slate-600">
+              <table className="min-w-full divide-y divide-border text-left text-sm">
+                <thead className="bg-surface-2 text-fg-muted">
                   <tr>
                     <th className="px-4 py-3 font-medium">Collection</th>
                     <th className="px-4 py-3 font-medium">Environment</th>
@@ -340,7 +340,7 @@ export default function ExecutionHistory() {
                     <th className="px-4 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {items.map((item) => (
                     <ExecutionRow
                       key={item.id}
@@ -355,7 +355,7 @@ export default function ExecutionHistory() {
           </Card>
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-fg-muted">
               Page {page} of {totalPages}
             </p>
             <div className="flex gap-2">

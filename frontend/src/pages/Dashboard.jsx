@@ -75,7 +75,7 @@ export default function Dashboard() {
     return (
       <>
         <PageHeader title="Dashboard" />
-        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       </>
     );
   }
@@ -102,52 +102,52 @@ export default function Dashboard() {
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
                 Collections
               </p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">
+              <p className="mt-2 text-3xl font-bold text-fg">
                 {summary.totalCollections}
               </p>
             </Card>
             <Card>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
                 Environments
               </p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">
+              <p className="mt-2 text-3xl font-bold text-fg">
                 {summary.totalEnvironments}
               </p>
             </Card>
             <Card>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
                 Executions
               </p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">
+              <p className="mt-2 text-3xl font-bold text-fg">
                 {summary.totalExecutions}
               </p>
             </Card>
             <Card>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
                 Pass rate (last 20)
               </p>
               {summary.recentPassRateSampleSize != null && (
-                <p className="mt-0.5 text-xs text-slate-400">
+                <p className="mt-0.5 text-xs text-fg-muted">
                   Based on {summary.recentPassRateSampleSize} finished run
                   {summary.recentPassRateSampleSize === 1 ? '' : 's'}
                 </p>
               )}
-              <p className="mt-2 text-3xl font-bold text-slate-900">{passRateLabel}</p>
+              <p className="mt-2 text-3xl font-bold text-fg">{passRateLabel}</p>
             </Card>
           </div>
 
           <Card>
             <div className="mb-2 flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-slate-800">Pass rate (30 days)</p>
-                <p className="text-xs text-slate-500">Sparkline from daily execution results</p>
+                <p className="text-sm font-medium text-fg-secondary">Pass rate (30 days)</p>
+                <p className="text-xs text-fg-muted">Sparkline from daily execution results</p>
               </div>
               <Link
                 to="/analytics"
-                className="text-sm font-medium text-slate-700 underline-offset-2 hover:underline"
+                className="text-sm font-medium text-fg-secondary underline-offset-2 hover:underline"
               >
                 Open Analytics
               </Link>
@@ -155,7 +155,7 @@ export default function Dashboard() {
             {trendLoading ? (
               <LoadingSpinner label="Loading trend…" />
             ) : passTrend.length === 0 ? (
-              <p className="py-6 text-center text-sm text-slate-500">
+              <p className="py-6 text-center text-sm text-fg-muted">
                 No execution data yet for this range — run some collections first
               </p>
             ) : (
@@ -166,7 +166,7 @@ export default function Dashboard() {
           </Card>
 
           <Card>
-            <p className="text-sm font-medium text-slate-800">Quick actions</p>
+            <p className="text-sm font-medium text-fg-secondary">Quick actions</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button onClick={() => navigate('/collections')}>Upload Collection</Button>
               <Button variant="secondary" onClick={() => navigate('/collections')}>
@@ -179,22 +179,22 @@ export default function Dashboard() {
           </Card>
 
           <Card padding={false}>
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
-              <h2 className="text-sm font-semibold text-slate-800">Recent Executions</h2>
+            <div className="flex items-center justify-between border-b border-border px-5 py-3">
+              <h2 className="text-sm font-semibold text-fg-secondary">Recent Executions</h2>
               <Link
                 to="/executions"
-                className="text-sm font-medium text-slate-700 underline-offset-2 hover:underline"
+                className="text-sm font-medium text-fg-secondary underline-offset-2 hover:underline"
               >
                 View all
               </Link>
             </div>
 
             {!summary.recentExecutions?.length ? (
-              <p className="px-5 py-8 text-sm text-slate-500">
+              <p className="px-5 py-8 text-sm text-fg-muted">
                 No executions yet. Open a collection and click Run.
               </p>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-border">
                 {summary.recentExecutions.map((item) => (
                   <ExecutionRowCompact key={item.id} execution={item} />
                 ))}

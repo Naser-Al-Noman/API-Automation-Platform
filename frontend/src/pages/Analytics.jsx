@@ -131,7 +131,7 @@ export default function Analytics() {
   }, [collectionId]);
 
   const selectClass =
-    'rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500';
+    'rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-border-strong';
 
   return (
     <>
@@ -143,7 +143,7 @@ export default function Analytics() {
       <Card className="mb-6">
         <div className="flex flex-wrap items-end gap-4">
           <label className="block min-w-[200px] flex-1">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Collection</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">Collection</span>
             <select
               className={`w-full ${selectClass}`}
               value={collectionId}
@@ -159,7 +159,7 @@ export default function Analytics() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">Time range</span>
+            <span className="mb-1 block text-xs font-medium text-fg-muted">Time range</span>
             <div className="flex gap-2">
               {DAY_OPTIONS.map((d) => (
                 <button
@@ -168,8 +168,8 @@ export default function Analytics() {
                   onClick={() => setDays(d)}
                   className={`rounded-md px-3 py-2 text-sm font-medium ${
                     days === d
-                      ? 'bg-slate-900 text-white'
-                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      ? 'bg-accent text-accent-fg'
+                      : 'border border-border-strong bg-surface text-fg-secondary hover:bg-surface-2'
                   }`}
                 >
                   {d}d
@@ -181,7 +181,7 @@ export default function Analytics() {
       </Card>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
 
       <div className="space-y-6">

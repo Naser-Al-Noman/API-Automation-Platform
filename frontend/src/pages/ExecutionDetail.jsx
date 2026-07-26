@@ -233,13 +233,13 @@ export default function ExecutionDetail() {
       />
       {loading && <LoadingSpinner label="Loading execution…" />}
       {error && (
-        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
       {rerunError && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{rerunError}</div>
+        <div className="mb-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{rerunError}</div>
       )}
       {deleteError && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{deleteError}</div>
+        <div className="mb-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{deleteError}</div>
       )}
 
       {!loading && !error && execution && (
@@ -248,28 +248,28 @@ export default function ExecutionDetail() {
             <div className="flex flex-wrap items-center gap-3">
               <Badge status={execution.status}>{execution.status}</Badge>
               {execution.status === 'running' && (
-                <span className="text-sm text-slate-500">Running — polling for results…</span>
+                <span className="text-sm text-fg-muted">Running — polling for results…</span>
               )}
             </div>
 
             <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <dt className="text-slate-500">Collection</dt>
-                <dd className="font-medium text-slate-900">{execution.collection_name}</dd>
+                <dt className="text-fg-muted">Collection</dt>
+                <dd className="font-medium text-fg">{execution.collection_name}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Environment</dt>
-                <dd className="font-medium text-slate-900">
+                <dt className="text-fg-muted">Environment</dt>
+                <dd className="font-medium text-fg">
                   {execution.environment_name || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Started</dt>
-                <dd className="font-medium text-slate-900">{formatDate(execution.started_at)}</dd>
+                <dt className="text-fg-muted">Started</dt>
+                <dd className="font-medium text-fg">{formatDate(execution.started_at)}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Duration</dt>
-                <dd className="font-medium text-slate-900">
+                <dt className="text-fg-muted">Duration</dt>
+                <dd className="font-medium text-fg">
                   {durationLabel(execution.started_at, execution.finished_at, execution.status)}
                 </dd>
               </div>
@@ -292,14 +292,14 @@ export default function ExecutionDetail() {
                   },
                 ].map((card) => (
                   <Card key={card.label} className="!p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">{card.label}</p>
-                    <p className="mt-1 text-xl font-semibold text-slate-900">{card.value}</p>
+                    <p className="text-xs uppercase tracking-wide text-fg-muted">{card.label}</p>
+                    <p className="mt-1 text-xl font-semibold text-fg">{card.value}</p>
                   </Card>
                 ))}
               </div>
 
               {summary.error && (
-                <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+                <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
                   {summary.error}
                 </div>
               )}
@@ -312,18 +312,18 @@ export default function ExecutionDetail() {
                   </Button>
                 )}
                 {(reportError || downloadError) && (
-                  <span className="text-sm text-red-700">{reportError || downloadError}</span>
+                  <span className="text-sm text-danger">{reportError || downloadError}</span>
                 )}
               </div>
 
               <Card padding={false}>
-                <div className="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700">
+                <div className="border-b border-border px-4 py-3 text-sm font-medium text-fg-secondary">
                   Request breakdown
                 </div>
                 {requests.length === 0 ? (
-                  <p className="px-4 py-8 text-sm text-slate-500">No per-request data available.</p>
+                  <p className="px-4 py-8 text-sm text-fg-muted">No per-request data available.</p>
                 ) : (
-                  <ul className="divide-y divide-slate-100">
+                  <ul className="divide-y divide-border">
                     {requests.map((req, index) => {
                       const tests = req.tests || {
                         total: 0,
@@ -338,27 +338,27 @@ export default function ExecutionDetail() {
                             <span
                               className={`rounded px-2 py-0.5 text-xs font-semibold ${
                                 req.passed
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-red-100 text-red-800'
+                                  ? 'bg-badge-passed-bg text-badge-passed-fg'
+                                  : 'bg-badge-failed-bg text-badge-failed-fg'
                               }`}
                             >
                               {req.passed ? 'PASS' : 'FAIL'}
                             </span>
                             {req.method && (
-                              <span className="rounded bg-slate-900 px-2 py-0.5 text-xs font-semibold text-white">
+                              <span className="rounded bg-chip px-2 py-0.5 text-xs font-semibold text-chip-fg">
                                 {req.method}
                               </span>
                             )}
-                            <span className="font-medium text-slate-900">{req.name}</span>
+                            <span className="font-medium text-fg">{req.name}</span>
                             {req.responseTime != null && (
-                              <span className="text-xs text-slate-500">
+                              <span className="text-xs text-fg-muted">
                                 {req.responseTime} ms
                               </span>
                             )}
                           </div>
 
                           <div className="mt-2 flex flex-wrap gap-2">
-                            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                            <span className="rounded bg-page px-2 py-0.5 text-xs font-medium text-fg-secondary">
                               {tests.total > 0
                                 ? `Tests: ${tests.passed}/${tests.total} passed`
                                 : 'Tests: none'}
@@ -368,8 +368,8 @@ export default function ExecutionDetail() {
                                 <summary
                                   className={`cursor-pointer list-none rounded px-2 py-0.5 text-xs font-medium ${
                                     schema.valid
-                                      ? 'bg-emerald-100 text-emerald-800'
-                                      : 'bg-red-100 text-red-800'
+                                      ? 'bg-badge-passed-bg text-badge-passed-fg'
+                                      : 'bg-badge-failed-bg text-badge-failed-fg'
                                   }`}
                                 >
                                   Schema: {schema.valid ? 'valid' : 'invalid'}
@@ -378,7 +378,7 @@ export default function ExecutionDetail() {
                                     : ''}
                                 </summary>
                                 {!schema.valid && schema.errors?.length > 0 && (
-                                  <ul className="mt-2 space-y-1 rounded-md bg-red-50 px-3 py-2 text-xs text-red-800">
+                                  <ul className="mt-2 space-y-1 rounded-md bg-danger-soft px-3 py-2 text-xs text-danger">
                                     {schema.errors.map((msg, i) => (
                                       <li key={i}>{msg}</li>
                                     ))}
@@ -386,14 +386,14 @@ export default function ExecutionDetail() {
                                 )}
                               </details>
                             ) : (
-                              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                              <span className="rounded bg-page px-2 py-0.5 text-xs font-medium text-fg-muted">
                                 Schema: not defined
                               </span>
                             )}
                           </div>
 
                           {req.error && !schema?.errors?.includes(req.error) && (
-                            <p className="mt-1 text-xs text-red-700">{req.error}</p>
+                            <p className="mt-1 text-xs text-danger">{req.error}</p>
                           )}
                         </li>
                       );
@@ -404,8 +404,8 @@ export default function ExecutionDetail() {
 
               {execution.report_url && (
                 <Card padding={false} className="overflow-hidden">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
-                    <p className="text-sm font-medium text-slate-700">HTML report preview</p>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+                    <p className="text-sm font-medium text-fg-secondary">HTML report preview</p>
                     <Button variant="secondary" size="sm" onClick={openReportInTab}>
                       Open in new tab
                     </Button>
@@ -418,9 +418,9 @@ export default function ExecutionDetail() {
                   )}
 
                   {!reportLoading && reportError && (
-                    <div className="px-4 py-8 text-center text-sm text-slate-600">
+                    <div className="px-4 py-8 text-center text-sm text-fg-muted">
                       <p>{reportError}</p>
-                      <p className="mt-2 text-xs text-slate-500">
+                      <p className="mt-2 text-xs text-fg-muted">
                         Re-run this collection to generate a new report. New runs
                         store the HTML in the database so it survives server restarts.
                       </p>
@@ -434,13 +434,13 @@ export default function ExecutionDetail() {
                     <iframe
                       title="Newman HTML report"
                       src={reportUrl}
-                      className="min-h-[70vh] h-[min(85vh,900px)] w-full resize-y bg-white"
+                      className="min-h-[70vh] h-[min(85vh,900px)] w-full resize-y bg-surface"
                       onError={() => setIframeFailed(true)}
                     />
                   )}
 
                   {!reportLoading && !reportError && iframeFailed && (
-                    <div className="px-4 py-8 text-center text-sm text-slate-600">
+                    <div className="px-4 py-8 text-center text-sm text-fg-muted">
                       <p>
                         The report could not be shown inline (some browsers restrict iframe
                         content). Open it in a new tab or download the HTML file instead.

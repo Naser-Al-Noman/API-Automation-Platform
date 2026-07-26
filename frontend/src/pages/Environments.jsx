@@ -56,7 +56,7 @@ function EnvironmentsList() {
       />
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
 
       {loading ? (
@@ -69,27 +69,27 @@ function EnvironmentsList() {
         />
       ) : (
         <Card padding={false}>
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+          <table className="min-w-full divide-y divide-border text-left text-sm">
+            <thead className="bg-surface-2 text-fg-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Variables</th>
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50">
+                <tr key={item.id} className="hover:bg-surface-2">
                   <td className="px-4 py-3">
                     <button
                       type="button"
                       onClick={() => navigate(`/environments/${item.id}`)}
-                      className="font-medium text-slate-900 underline-offset-2 hover:underline"
+                      className="font-medium text-fg underline-offset-2 hover:underline"
                     >
                       {item.name}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{item.variable_count ?? '—'}</td>
+                  <td className="px-4 py-3 text-fg-muted">{item.variable_count ?? '—'}</td>
                   <td className="px-4 py-3">
                     <Button
                       variant="danger"
@@ -165,31 +165,31 @@ function EnvironmentDetail() {
 
       {loading && <LoadingSpinner label="Loading…" />}
       {error && (
-        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
 
       {!loading && !error && environment && (
         <Card padding={false}>
-          <div className="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700">
+          <div className="border-b border-border px-4 py-3 text-sm font-medium text-fg-secondary">
             Variables ({values.length})
           </div>
           {values.length === 0 ? (
-            <p className="px-4 py-8 text-sm text-slate-500">No variables in this environment.</p>
+            <p className="px-4 py-8 text-sm text-fg-muted">No variables in this environment.</p>
           ) : (
-            <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
+            <table className="min-w-full divide-y divide-border text-left text-sm">
+              <thead className="bg-surface-2 text-fg-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Key</th>
                   <th className="px-4 py-3 font-medium">Value</th>
                   <th className="px-4 py-3 font-medium">Enabled</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {values.map((entry, index) => (
                   <tr key={`${entry.key}-${index}`}>
-                    <td className="px-4 py-3 font-medium text-slate-900">{entry.key}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-700">{entry.value}</td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 font-medium text-fg">{entry.key}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-fg-secondary">{entry.value}</td>
+                    <td className="px-4 py-3 text-fg-muted">
                       {entry.enabled === false ? 'No' : 'Yes'}
                     </td>
                   </tr>

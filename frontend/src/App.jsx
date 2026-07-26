@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import { LoadingSpinner } from './components/ui';
@@ -18,7 +19,7 @@ function RootRedirect() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+      <div className="flex min-h-screen items-center justify-center bg-page">
         <LoadingSpinner label="Loading…" />
       </div>
     );
@@ -38,27 +39,29 @@ function ProtectedLayout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<RootRedirect />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<RootRedirect />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          <Route element={<ProtectedLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/collections/:id" element={<Collections />} />
-            <Route path="/environments" element={<Environments />} />
-            <Route path="/environments/:id" element={<Environments />} />
-            <Route path="/executions" element={<ExecutionHistory />} />
-            <Route path="/executions/:id" element={<ExecutionDetail />} />
-            <Route path="/api-keys" element={<ApiKeys />} />
-          </Route>
+            <Route element={<ProtectedLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/collections/:id" element={<Collections />} />
+              <Route path="/environments" element={<Environments />} />
+              <Route path="/environments/:id" element={<Environments />} />
+              <Route path="/executions" element={<ExecutionHistory />} />
+              <Route path="/executions/:id" element={<ExecutionDetail />} />
+              <Route path="/api-keys" element={<ApiKeys />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

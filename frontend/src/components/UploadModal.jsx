@@ -48,16 +48,16 @@ export default function UploadModal({
     <Modal title={title} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
         )}
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">{nameLabel}</span>
+          <span className="mb-1 block text-sm font-medium text-fg-secondary">{nameLabel}</span>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-slate-500"
+            className="w-full rounded-md border border-border-strong px-3 py-2 text-fg outline-none focus:border-border-strong"
           />
         </label>
 
@@ -82,22 +82,22 @@ export default function UploadModal({
 
         {mode === 'file' ? (
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">JSON file</span>
+            <span className="mb-1 block text-sm font-medium text-fg-secondary">JSON file</span>
             <input
               type="file"
               accept=".json,application/json"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-slate-600"
+              className="block w-full text-sm text-fg-muted"
             />
           </label>
         ) : (
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Raw JSON</span>
+            <span className="mb-1 block text-sm font-medium text-fg-secondary">Raw JSON</span>
             <textarea
               rows={10}
               value={rawJson}
               onChange={(e) => setRawJson(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-slate-500"
+              className="w-full rounded-md border border-border-strong px-3 py-2 font-mono text-xs text-fg outline-none focus:border-border-strong"
               placeholder="{ ... }"
             />
           </label>

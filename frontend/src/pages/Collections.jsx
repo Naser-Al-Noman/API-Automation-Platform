@@ -61,7 +61,7 @@ function CollectionsList() {
         actions={<Button onClick={() => setShowUpload(true)}>Upload Collection</Button>}
       />
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
 
       {loading ? (
@@ -74,8 +74,8 @@ function CollectionsList() {
         />
       ) : (
         <Card padding={false}>
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+          <table className="min-w-full divide-y divide-border text-left text-sm">
+            <thead className="bg-surface-2 text-fg-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Requests</th>
@@ -83,20 +83,20 @@ function CollectionsList() {
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50">
+                <tr key={item.id} className="hover:bg-surface-2">
                   <td className="px-4 py-3">
                     <button
                       type="button"
                       onClick={() => navigate(`/collections/${item.id}`)}
-                      className="font-medium text-slate-900 underline-offset-2 hover:underline"
+                      className="font-medium text-fg underline-offset-2 hover:underline"
                     >
                       {item.name}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{item.request_count ?? '—'}</td>
-                  <td className="px-4 py-3 text-slate-600">{formatDate(item.created_at)}</td>
+                  <td className="px-4 py-3 text-fg-muted">{item.request_count ?? '—'}</td>
+                  <td className="px-4 py-3 text-fg-muted">{formatDate(item.created_at)}</td>
                   <td className="px-4 py-3">
                     <Button variant="danger" size="sm" onClick={() => handleDelete(item.id, item.name)}>Delete</Button>
                   </td>
@@ -241,36 +241,36 @@ function CollectionDetail() {
       />
       {loading && <LoadingSpinner label="Loading…" />}
       {error && (
-        <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
 
       {!loading && !error && collection && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
             <dl className="grid gap-3 text-sm sm:grid-cols-3">
               <div>
-                <dt className="text-slate-500">Created</dt>
-                <dd className="font-medium text-slate-900">{formatDate(collection.created_at)}</dd>
+                <dt className="text-fg-muted">Created</dt>
+                <dd className="font-medium text-fg">{formatDate(collection.created_at)}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Requests</dt>
-                <dd className="font-medium text-slate-900">{collection.request_count}</dd>
+                <dt className="text-fg-muted">Requests</dt>
+                <dd className="font-medium text-fg">{collection.request_count}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Schemas</dt>
-                <dd className="font-medium text-slate-900">{schemas.length}</dd>
+                <dt className="text-fg-muted">Schemas</dt>
+                <dd className="font-medium text-fg">{schemas.length}</dd>
               </div>
             </dl>
 
-            <div className="mt-5 border-t border-slate-100 pt-4">
-              <p className="text-sm font-medium text-slate-800">Run with Newman</p>
+            <div className="mt-5 border-t border-border pt-4">
+              <p className="text-sm font-medium text-fg-secondary">Run with Newman</p>
               {environments.length === 0 ? (
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-fg-muted">
                   Upload an environment first, then come back to run this collection.{' '}
                   <button
                     type="button"
                     onClick={() => navigate('/environments')}
-                    className="font-medium text-slate-900 underline"
+                    className="font-medium text-fg underline"
                   >
                     Go to Environments
                   </button>
@@ -278,13 +278,13 @@ function CollectionDetail() {
               ) : (
                 <div className="mt-3 flex flex-wrap items-end gap-3">
                   <label className="block min-w-[220px] flex-1">
-                    <span className="mb-1 block text-xs font-medium text-slate-600">
+                    <span className="mb-1 block text-xs font-medium text-fg-muted">
                       Environment
                     </span>
                     <select
                       value={selectedEnvId}
                       onChange={(e) => setSelectedEnvId(e.target.value)}
-                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500"
+                      className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-border-strong"
                     >
                       {environments.map((env) => (
                         <option key={env.id} value={env.id}>
@@ -299,23 +299,23 @@ function CollectionDetail() {
                 </div>
               )}
               {runError && (
-                <p className="mt-2 text-sm text-red-700">{runError}</p>
+                <p className="mt-2 text-sm text-danger">{runError}</p>
               )}
             </div>
 
-            <div className="mt-5 border-t border-slate-100 pt-4">
-              <p className="text-sm font-medium text-slate-800">CI Integration</p>
-              <p className="mt-1 text-sm text-slate-600">
+            <div className="mt-5 border-t border-border pt-4">
+              <p className="text-sm font-medium text-fg-secondary">CI Integration</p>
+              <p className="mt-1 text-sm text-fg-muted">
                 Copy this GitHub Actions workflow into{' '}
-                <code className="rounded bg-slate-100 px-1 text-xs">.github/workflows/</code>.
+                <code className="rounded bg-page px-1 text-xs">.github/workflows/</code>.
                 Add secrets{' '}
-                <code className="rounded bg-slate-100 px-1 text-xs">BACKEND_URL</code> and{' '}
-                <code className="rounded bg-slate-100 px-1 text-xs">API_KEY</code>
+                <code className="rounded bg-page px-1 text-xs">BACKEND_URL</code> and{' '}
+                <code className="rounded bg-page px-1 text-xs">API_KEY</code>
                 {' '}(create a key under{' '}
                 <button
                   type="button"
                   onClick={() => navigate('/api-keys')}
-                  className="font-medium text-slate-900 underline"
+                  className="font-medium text-fg underline"
                 >
                   API Keys
                 </button>
@@ -323,19 +323,19 @@ function CollectionDetail() {
               </p>
 
               {environments.length === 0 ? (
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-fg-muted">
                   Upload an environment first to fill environmentId in the snippet.
                 </p>
               ) : (
                 <div className="mt-3 space-y-3">
                   <label className="block max-w-sm">
-                    <span className="mb-1 block text-xs font-medium text-slate-600">
+                    <span className="mb-1 block text-xs font-medium text-fg-muted">
                       Environment for CI snippet
                     </span>
                     <select
                       value={selectedEnvId}
                       onChange={(e) => setSelectedEnvId(e.target.value)}
-                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500"
+                      className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-border-strong"
                     >
                       {environments.map((env) => (
                         <option key={env.id} value={env.id}>
@@ -345,7 +345,7 @@ function CollectionDetail() {
                     </select>
                   </label>
                   <div className="relative">
-                    <pre className="max-h-80 overflow-auto rounded-md border border-slate-200 bg-slate-900 p-4 text-xs text-slate-100">
+                    <pre className="max-h-80 overflow-auto rounded-md border border-border bg-surface p-4 text-xs text-fg">
                       {buildCiWorkflowYaml({
                         collectionId: collection.id,
                         environmentId: selectedEnvId ? Number(selectedEnvId) : undefined,
@@ -367,7 +367,7 @@ function CollectionDetail() {
                           alert('Could not copy — select the YAML manually');
                         }
                       }}
-                      className="absolute right-3 top-3 rounded-md bg-white/10 px-2.5 py-1 text-xs font-medium text-white hover:bg-white/20"
+                      className="absolute right-3 top-3 rounded-md bg-chip px-2.5 py-1 text-xs font-medium text-chip-fg hover:opacity-90"
                     >
                       Copy YAML
                     </button>
@@ -377,19 +377,19 @@ function CollectionDetail() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700">
+          <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+            <div className="border-b border-border px-4 py-3 text-sm font-medium text-fg-secondary">
               Endpoints
             </div>
             {rows.length === 0 ? (
-              <p className="px-4 py-8 text-sm text-slate-500">No requests found in this collection.</p>
+              <p className="px-4 py-8 text-sm text-fg-muted">No requests found in this collection.</p>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-border">
                 {rows.map((row, index) => {
                   if (row.type === 'folder') {
                     return (
                       <li key={`folder-${row.name}-${index}`} className="px-4 py-3 text-sm">
-                        <div className="font-medium text-slate-500">
+                        <div className="font-medium text-fg-muted">
                           {' '.repeat(row.path.length)}[Folder] {row.name}
                         </div>
                       </li>
@@ -401,12 +401,12 @@ function CollectionDetail() {
                   return (
                     <li key={`req-${row.endpoint}-${index}`} className="px-4 py-3 text-sm">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className="w-16 shrink-0 rounded bg-slate-900 px-2 py-0.5 text-center text-xs font-semibold text-white">
+                        <span className="w-16 shrink-0 rounded bg-chip px-2 py-0.5 text-center text-xs font-semibold text-chip-fg">
                           {row.method}
                         </span>
-                        <span className="font-medium text-slate-900">{row.name}</span>
+                        <span className="font-medium text-fg">{row.name}</span>
                         {row.path.length > 0 && (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-fg-muted">
                             {row.path.join(' / ')}
                           </span>
                         )}

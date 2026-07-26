@@ -94,7 +94,7 @@ export default function ApiKeys() {
       />
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
       )}
 
       {loading ? (
@@ -108,8 +108,8 @@ export default function ApiKeys() {
         />
       ) : (
         <Card padding={false}>
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+          <table className="min-w-full divide-y divide-border text-left text-sm">
+            <thead className="bg-surface-2 text-fg-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Created</th>
@@ -117,12 +117,12 @@ export default function ApiKeys() {
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {keys.map((key) => (
                 <tr key={key.id}>
-                  <td className="px-4 py-3 font-medium text-slate-900">{key.name}</td>
-                  <td className="px-4 py-3 text-slate-600">{formatDate(key.created_at)}</td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 font-medium text-fg">{key.name}</td>
+                  <td className="px-4 py-3 text-fg-muted">{formatDate(key.created_at)}</td>
+                  <td className="px-4 py-3 text-fg-muted">
                     {key.last_used_at ? formatDate(key.last_used_at) : 'Never'}
                   </td>
                   <td className="px-4 py-3">
@@ -148,14 +148,14 @@ export default function ApiKeys() {
         >
           {createdKey ? (
             <div className="space-y-4">
-              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              <div className="rounded-md border border-badge-running-fg/30 bg-badge-running-bg px-3 py-2 text-sm text-badge-running-fg">
                 Copy this key now — you will not be able to see it again.
               </div>
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <div className="rounded-md border border-border bg-surface-2 p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">
                   {createdKey.name}
                 </p>
-                <code className="mt-2 block break-all font-mono text-xs text-slate-900">
+                <code className="mt-2 block break-all font-mono text-xs text-fg">
                   {createdKey.key}
                 </code>
               </div>
@@ -169,12 +169,12 @@ export default function ApiKeys() {
           ) : (
             <form onSubmit={handleCreate} className="space-y-4">
               {modalError && (
-                <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+                <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">
                   {modalError}
                 </div>
               )}
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-slate-700">Key name</span>
+                <span className="mb-1 block text-sm font-medium text-fg-secondary">Key name</span>
                 <input
                   type="text"
                   required
@@ -182,7 +182,7 @@ export default function ApiKeys() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. GitHub Actions"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-slate-500"
+                  className="w-full rounded-md border border-border-strong px-3 py-2 text-fg outline-none focus:border-border-strong"
                 />
               </label>
               <div className="flex justify-end gap-2">

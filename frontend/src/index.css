@@ -1,1 +1,117 @@
 @import "tailwindcss";
+
+/*
+ * Semantic theme tokens. Toggle html.dark / html.light (default: dark).
+ * Use utilities like bg-page, text-fg, border-border, bg-accent, etc.
+ */
+@theme {
+  --color-page: var(--app-page);
+  --color-surface: var(--app-surface);
+  --color-surface-2: var(--app-surface-2);
+  --color-border: var(--app-border);
+  --color-border-strong: var(--app-border-strong);
+  --color-fg: var(--app-fg);
+  --color-fg-secondary: var(--app-fg-secondary);
+  --color-fg-muted: var(--app-fg-muted);
+  --color-input: var(--app-input);
+  --color-accent: var(--app-accent);
+  --color-accent-fg: var(--app-accent-fg);
+  --color-danger-soft: var(--app-danger-soft);
+  --color-danger: var(--app-danger);
+  --color-overlay: var(--app-overlay);
+  --color-chip: var(--app-chip);
+  --color-chip-fg: var(--app-chip-fg);
+  --color-spinner-track: var(--app-spinner-track);
+  --color-spinner-head: var(--app-spinner-head);
+  --color-badge-passed-bg: var(--app-badge-passed-bg);
+  --color-badge-passed-fg: var(--app-badge-passed-fg);
+  --color-badge-failed-bg: var(--app-badge-failed-bg);
+  --color-badge-failed-fg: var(--app-badge-failed-fg);
+  --color-badge-running-bg: var(--app-badge-running-bg);
+  --color-badge-running-fg: var(--app-badge-running-fg);
+  --color-badge-pending-bg: var(--app-badge-pending-bg);
+  --color-badge-pending-fg: var(--app-badge-pending-fg);
+  --color-badge-default-bg: var(--app-badge-default-bg);
+  --color-badge-default-fg: var(--app-badge-default-fg);
+  --color-chart-grid: var(--app-chart-grid);
+  --color-chart-line: var(--app-chart-line);
+  --color-chart-line-2: var(--app-chart-line-2);
+}
+
+:root,
+html.dark {
+  color-scheme: dark;
+  --app-page: #020617;
+  --app-surface: #0f172a;
+  --app-surface-2: #1e293b;
+  --app-border: #334155;
+  --app-border-strong: #475569;
+  --app-fg: #f1f5f9;
+  --app-fg-secondary: #e2e8f0;
+  --app-fg-muted: #94a3b8;
+  --app-input: #020617;
+  --app-accent: #f1f5f9;
+  --app-accent-fg: #0f172a;
+  --app-danger-soft: rgb(69 10 10 / 0.4);
+  --app-danger: #f87171;
+  --app-overlay: rgb(0 0 0 / 0.6);
+  --app-chip: #334155;
+  --app-chip-fg: #f1f5f9;
+  --app-spinner-track: #475569;
+  --app-spinner-head: #e2e8f0;
+  --app-badge-passed-bg: #022c22;
+  --app-badge-passed-fg: #6ee7b7;
+  --app-badge-failed-bg: #450a0a;
+  --app-badge-failed-fg: #fca5a5;
+  --app-badge-running-bg: #451a03;
+  --app-badge-running-fg: #fde68a;
+  --app-badge-pending-bg: #082f49;
+  --app-badge-pending-fg: #7dd3fc;
+  --app-badge-default-bg: #1e293b;
+  --app-badge-default-fg: #cbd5e1;
+  --app-chart-grid: #334155;
+  --app-chart-line: #38bdf8;
+  --app-chart-line-2: #7dd3fc;
+}
+
+html.light {
+  color-scheme: light;
+  --app-page: #f1f5f9;
+  --app-surface: #ffffff;
+  --app-surface-2: #f8fafc;
+  --app-border: #e2e8f0;
+  --app-border-strong: #cbd5e1;
+  --app-fg: #0f172a;
+  --app-fg-secondary: #1e293b;
+  --app-fg-muted: #64748b;
+  --app-input: #ffffff;
+  --app-accent: #0f172a;
+  --app-accent-fg: #ffffff;
+  --app-danger-soft: #fef2f2;
+  --app-danger: #b91c1c;
+  --app-overlay: rgb(15 23 42 / 0.4);
+  --app-chip: #0f172a;
+  --app-chip-fg: #ffffff;
+  --app-spinner-track: #cbd5e1;
+  --app-spinner-head: #334155;
+  --app-badge-passed-bg: #d1fae5;
+  --app-badge-passed-fg: #065f46;
+  --app-badge-failed-bg: #fee2e2;
+  --app-badge-failed-fg: #991b1b;
+  --app-badge-running-bg: #fef3c7;
+  --app-badge-running-fg: #78350f;
+  --app-badge-pending-bg: #e0f2fe;
+  --app-badge-pending-fg: #075985;
+  --app-badge-default-bg: #f1f5f9;
+  --app-badge-default-fg: #334155;
+  --app-chart-grid: #e2e8f0;
+  --app-chart-line: #0f172a;
+  --app-chart-line-2: #0369a1;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--app-page);
+  color: var(--app-fg-secondary);
+}

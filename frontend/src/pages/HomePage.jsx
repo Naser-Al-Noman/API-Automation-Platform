@@ -3,33 +3,35 @@ import { getHealth, getHealthDb } from '../api/client';
 
 function StatusCard({ title, loading, error, data }) {
   let badge = 'Checking…';
-  let badgeClass = 'bg-slate-200 text-slate-700';
+  let badgeClass = 'bg-surface-2 text-fg-secondary';
 
   if (!loading && error) {
     badge = 'Failed';
-    badgeClass = 'bg-red-100 text-red-800';
+    badgeClass = 'bg-badge-failed-bg text-badge-failed-fg';
   } else if (!loading && data) {
     const ok = data.status === 'ok';
     badge = ok ? 'OK' : 'Error';
-    badgeClass = ok ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900';
+    badgeClass = ok
+      ? 'bg-badge-passed-bg text-badge-passed-fg'
+      : 'bg-badge-running-bg text-badge-running-fg';
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        <h2 className="text-lg font-semibold text-fg">{title}</h2>
         <span className={`rounded px-2.5 py-1 text-xs font-medium ${badgeClass}`}>
           {badge}
         </span>
       </div>
-      {loading && <p className="text-sm text-slate-500">Loading…</p>}
+      {loading && <p className="text-sm text-fg-muted">Loading…</p>}
       {error && (
-        <pre className="overflow-x-auto rounded bg-red-50 p-3 text-xs text-red-800">
+        <pre className="overflow-x-auto rounded bg-danger-soft p-3 text-xs text-danger">
           {error}
         </pre>
       )}
       {!loading && !error && data && (
-        <pre className="overflow-x-auto rounded bg-slate-50 p-3 text-xs text-slate-800">
+        <pre className="overflow-x-auto rounded bg-surface-2 p-3 text-xs text-fg-secondary">
           {JSON.stringify(data, null, 2)}
         </pre>
       )}
@@ -83,16 +85,16 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-page">
+      <header className="border-b border-border bg-surface">
         <div className="mx-auto max-w-3xl px-4 py-8">
-          <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
+          <p className="text-sm font-medium uppercase tracking-wide text-fg-muted">
             Phase 1 · Scaffold
           </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-fg">
             API Automation Platform
           </h1>
-          <p className="mt-2 max-w-2xl text-slate-600">
+          <p className="mt-2 max-w-2xl text-fg-muted">
             Connectivity check: frontend → Express backend → Neon Postgres.
             Both health endpoints should report OK when your env is configured.
           </p>

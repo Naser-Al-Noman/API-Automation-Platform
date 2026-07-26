@@ -1,10 +1,9 @@
 const VARIANTS = {
-  primary:
-    'bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60',
+  primary: 'bg-accent text-accent-fg hover:opacity-90 disabled:opacity-60',
   secondary:
-    'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-60',
+    'border border-border-strong bg-surface text-fg-secondary hover:bg-surface-2 disabled:opacity-60',
   danger:
-    'border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:opacity-60',
+    'border border-danger bg-surface text-danger hover:bg-danger-soft disabled:opacity-60',
 };
 
 const SIZES = {

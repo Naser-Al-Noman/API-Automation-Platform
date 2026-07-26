@@ -58,17 +58,17 @@ export default function SchemaModal({
       onClose={onClose}
       title={existingSchema ? 'Edit Schema' : 'Define Schema'}
     >
-      <p className="-mt-2 mb-4 text-sm text-slate-600">
-        Endpoint: <span className="font-medium text-slate-900">{endpoint}</span>
+      <p className="-mt-2 mb-4 text-sm text-fg-muted">
+        Endpoint: <span className="font-medium text-fg">{endpoint}</span>
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <div className="rounded-md bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>
         )}
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">
+          <span className="mb-1 block text-sm font-medium text-fg-secondary">
             JSON Schema
           </span>
           <textarea
@@ -76,10 +76,10 @@ export default function SchemaModal({
             value={text}
             onChange={(e) => setText(e.target.value)}
             spellCheck={false}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs text-slate-900 outline-none focus:border-slate-500"
+            className="w-full rounded-md border border-border-strong px-3 py-2 font-mono text-xs text-fg outline-none focus:border-border-strong"
             placeholder={EXAMPLE_SCHEMA}
           />
-          <span className="mt-1 block text-xs text-slate-500">
+          <span className="mt-1 block text-xs text-fg-muted">
             Paste a draft-07 / modern JSON Schema object. It will be compiled with Ajv on save.
           </span>
         </label>
